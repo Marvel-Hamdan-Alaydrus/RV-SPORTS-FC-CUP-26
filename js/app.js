@@ -1,444 +1,340 @@
-/* =========================================================
-   RV SPORTS: FC CUP 26
-   MAIN APPLICATION
-   Version: 1.1.0
-   ========================================================= */
-
 (function () {
     "use strict";
 
-    const APP_VERSION = "1.1.0";
+    const APP_VERSION = "2.0.0";
 
     const AppState = {
         booted: false,
         starting: false
     };
 
-    /* =====================================================
-       ELEMENT HELPERS
-       ===================================================== */
+    let selectedPosition = "ST";
+
+    const POSITION_NAMES = {
+        GK: "Goalkeeper",
+        LB: "Left Back",
+        CB: "Centre Back",
+        RB: "Right Back",
+        LWB: "Left Wing Back",
+        RWB: "Right Wing Back",
+        CDM: "Defensive Midfielder",
+        CM: "Central Midfielder",
+        CAM: "Attacking Midfielder",
+        LW: "Left Winger",
+        RW: "Right Winger",
+        ST: "Striker"
+    };
+
+    /* =========================================================
+       BASIC HELPERS
+    ========================================================= */
 
     function $(id) {
         return document.getElementById(id);
     }
 
-    function setLoading(percent, text) {
-        const percentage = $("loading-percentage");
-        const bar = $("loading-bar");
-        const loadingText =
-            document.querySelector(".loading-text");
-
-        if (percentage) {
-            percentage.textContent = percent + "%";
-        }
-
-        if (bar) {
-            bar.style.width = percent + "%";
-        }
-
-        if (loadingText && text) {
-            loadingText.textContent = text;
-        }
-
-        console.log(
-            "[APP]",
-            percent + "%",
-            "-",
-            text
-        );
+    function log() {
+        console.log.apply(console, ["[APP]"].concat(Array.from(arguments)));
     }
 
-    /* =====================================================
-       SCREEN HELPERS
-       ===================================================== */
-
-    function showStartScreen() {
-        if (
-            window.Router &&
-            typeof window.Router.navigate === "function"
-        ) {
-            window.Router.navigate("start");
-            return;
-        }
-
-        const screen = $("start-screen");
-
-        if (!screen) {
-            console.error(
-                "[APP] start-screen tidak ditemukan."
-            );
-            return;
-        }
-
-        document
-            .querySelectorAll(".screen")
-            .forEach(function (item) {
-                item.classList.add("hidden");
-            });
-
-        screen.classList.remove("hidden");
+    function warn() {
+        console.warn.apply(console, ["[APP]"].concat(Array.from(arguments)));
     }
 
-    function showCharacterCreation() {
-        if (
-            window.Router &&
-            typeof window.Router.navigate === "function"
-        ) {
-            window.Router.navigate("character");
-            return;
+    function showError(message) {
+        const error = $("start-error");
+
+        if (error) {
+            error.textContent = message;
+            error.classList.remove("hidden");
+        } else {
+            alert(message);
         }
-
-        const screen =
-            $("character-creation-screen");
-
-        if (!screen) {
-            console.error(
-                "[APP] character-creation-screen tidak ditemukan."
-            );
-            return;
-        }
-
-        document
-            .querySelectorAll(".screen")
-            .forEach(function (item) {
-                item.classList.add("hidden");
-            });
-
-        screen.classList.remove("hidden");
     }
 
-    function showDashboard() {
-        if (
-            window.Router &&
-            typeof window.Router.navigate === "function"
-        ) {
-            window.Router.navigate("dashboard");
-            return;
+    function clearError() {
+        const error = $("start-error");
+
+        if (error) {
+            error.textContent = "";
+            error.classList.add("hidden");
         }
-
-        const screen =
-            $("main-dashboard");
-
-        if (!screen) {
-            console.error(
-                "[APP] main-dashboard tidak ditemukan."
-            );
-            return;
-        }
-
-        document
-            .querySelectorAll(".screen")
-            .forEach(function (item) {
-                item.classList.add("hidden");
-            });
-
-        screen.classList.remove("hidden");
     }
 
-    /* =====================================================
-       START FORM
-       ===================================================== */
-
-    function getStartFormData() {
-        const emailInput =
-            $("player-email");
-
-        const accountNameInput =
-            $("player-account-name");
-
-        return {
-            email: emailInput
-                ? emailInput.value.trim()
-                : "",
-
-            accountName: accountNameInput
-                ? accountNameInput.value.trim()
-                : ""
-        };
-    }
-
-    function validateStartForm(data) {
-        if (!data.email) {
-            return {
-                valid: false,
-                message: "Email wajib diisi."
-            };
-        }
-
-        /*
-         * Validasi email sederhana.
-         */
-
-        const emailPattern =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailPattern.test(data.email)) {
-            return {
-                valid: false,
-                message: "Format email belum valid."
-            };
-        }
-
-        if (!data.accountName) {
-            return {
-                valid: false,
-                message: "Nama akun wajib diisi."
-            };
-        }
-
-        if (data.accountName.length < 3) {
-            return {
-                valid: false,
-                message: "Nama akun minimal 3 karakter."
-            };
-        }
-
-        return {
-            valid: true,
-            message: ""
-        };
-    }
-
-    function saveStartData(data) {
-        if (!window.S) {
-            console.error(
-                "[APP] S tidak tersedia."
-            );
-
-            return false;
-        }
+    function getPlayer() {
+        if (!window.S) return null;
 
         if (!window.S.player) {
             window.S.player = {};
         }
 
-        /*
-         * Simpan identitas akun.
-         */
+        return window.S.player;
+    }
 
-        window.S.player.email =
-            data.email;
+    function getPlayerStats() {
+        const player = getPlayer();
 
-        window.S.player.accountName =
-            data.accountName;
+        if (!player) return {};
 
-        /*
-         * Jangan langsung mengisi player.name
-         * karena nama pemain sepak bola akan dibuat
-         * pada Character Creation.
-         */
+        if (!player.stats) {
+            player.stats = {};
+        }
 
-        /*
-         * Metadata.
-         */
+        return player.stats;
+    }
 
+    function getAccount() {
+        if (!window.S) return null;
+
+        if (!window.S.account) {
+            window.S.account = {
+                email: "",
+                name: "",
+                created: false
+            };
+        }
+
+        return window.S.account;
+    }
+
+    function touchState() {
         if (typeof window.touchState === "function") {
             window.touchState();
         }
+    }
 
-        console.log(
-            "[APP] Start data saved:",
-            {
-                email: window.S.player.email,
-                accountName:
-                    window.S.player.accountName
+    function saveGame() {
+        if (typeof window.saveGame === "function") {
+            try {
+                return window.saveGame();
+            } catch (error) {
+                console.error("[APP] Save failed:", error);
+                return false;
             }
-        );
+        }
+
+        warn("saveGame() belum tersedia.");
+        return false;
+    }
+
+    function navigate(route) {
+        if (window.Router && typeof window.Router.navigate === "function") {
+            window.Router.navigate(route);
+            return true;
+        }
+
+        warn("Router belum tersedia:", route);
+        return false;
+    }
+
+    /* =========================================================
+       SCREEN CONTROL
+    ========================================================= */
+
+    function hideAllScreens() {
+        const screens = document.querySelectorAll(".screen");
+
+        screens.forEach(function (screen) {
+            screen.classList.add("hidden");
+            screen.setAttribute("aria-hidden", "true");
+        });
+    }
+
+    function showScreen(id) {
+        const screen = $(id);
+
+        if (!screen) {
+            warn("Screen tidak ditemukan:", id);
+            return false;
+        }
+
+        hideAllScreens();
+
+        screen.classList.remove("hidden");
+        screen.setAttribute("aria-hidden", "false");
 
         return true;
     }
 
-    function showStartError(message) {
-        const error =
-            $("start-error");
-
-        if (!error) {
-            console.warn(
-                "[APP] Start error element tidak ditemukan:",
-                message
-            );
-
-            return;
-        }
-
-        error.textContent = message;
-        error.classList.remove("hidden");
+    function showStartScreen() {
+        showScreen("start-screen");
+        navigate("start");
     }
 
-    function clearStartError() {
-        const error =
-            $("start-error");
+    function showCharacterCreation() {
+        showScreen("character-creation-screen");
 
-        if (!error) {
-            return;
+        bindCharacterCreation();
+
+        navigate("character");
+
+        updateCharacterPreview();
+
+        log("Character creation screen opened.");
+    }
+
+    function showDashboard() {
+        showScreen("main-dashboard");
+
+        refreshDashboard();
+
+        navigate("home");
+
+        log("Dashboard opened.");
+    }
+
+    /* =========================================================
+       START FORM
+    ========================================================= */
+
+    function getStartFormData() {
+        const email = $("player-email");
+        const accountName = $("player-account-name");
+
+        return {
+            email: email ? email.value.trim() : "",
+            accountName: accountName ? accountName.value.trim() : ""
+        };
+    }
+
+    function validateStartForm(data) {
+        if (!data.email) {
+            showError("Email wajib diisi.");
+            $("player-email")?.focus();
+            return false;
         }
 
-        error.textContent = "";
-        error.classList.add("hidden");
+        if (!data.accountName) {
+            showError("Nama akun wajib diisi.");
+            $("player-account-name")?.focus();
+            return false;
+        }
+
+        if (!data.email.includes("@")) {
+            showError("Masukkan email yang valid.");
+            $("player-email")?.focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    function saveStartData(data) {
+        if (!window.S) {
+            showError("Game state belum siap.");
+            return false;
+        }
+
+        const account = getAccount();
+
+        account.email = data.email;
+        account.name = data.accountName;
+        account.created = true;
+
+        touchState();
+
+        log("Start data saved:", {
+            email: account.email,
+            accountName: account.name
+        });
+
+        return true;
     }
 
     function handleStartGame() {
-        if (AppState.starting) {
-            return;
-        }
+        if (AppState.starting) return;
 
         AppState.starting = true;
 
+        clearError();
+
         try {
-            clearStartError();
+            const data = getStartFormData();
 
-            const data =
-                getStartFormData();
-
-            const validation =
-                validateStartForm(data);
-
-            if (!validation.valid) {
-                showStartError(
-                    validation.message
-                );
-
+            if (!validateStartForm(data)) {
+                AppState.starting = false;
                 return;
             }
 
-            const saved =
-                saveStartData(data);
-
-            if (!saved) {
-                showStartError(
-                    "Gagal menyimpan data akun."
-                );
-
+            if (!saveStartData(data)) {
+                AppState.starting = false;
                 return;
             }
 
-            /*
-             * Simpan langsung supaya email + account name
-             * tidak hilang ketika browser direfresh.
-             */
-
-            if (
-                typeof window.saveGame ===
-                "function"
-            ) {
-                window.saveGame();
-            }
-
-            /*
-             * Lanjut ke pembuatan karakter.
-             */
+            saveGame();
 
             showCharacterCreation();
-
         } catch (error) {
-            console.error(
-                "[APP] Start game error:",
-                error
-            );
-
-            showStartError(
-                "Terjadi kesalahan. Coba lagi."
-            );
-
-        } finally {
-            AppState.starting = false;
+            console.error("[APP] Start game error:", error);
+            showError("Terjadi kesalahan saat memulai game.");
         }
-    }
 
-    /* =====================================================
-       START FORM ENTER KEY
-       ===================================================== */
+        AppState.starting = false;
+    }
 
     function bindStartForm() {
-        const button =
-            $("start-game-button");
+        const button = $("start-game-button");
 
-        if (button) {
-            button.addEventListener(
-                "click",
-                handleStartGame
-            );
+        if (!button) {
+            warn("start-game-button tidak ditemukan.");
+            return;
         }
 
-        const email =
-            $("player-email");
+        if (button.dataset.bound === "true") {
+            return;
+        }
 
-        const accountName =
-            $("player-account-name");
+        button.dataset.bound = "true";
 
-        [
-            email,
-            accountName
-        ].forEach(function (input) {
-            if (!input) {
-                return;
-            }
+        button.addEventListener("click", handleStartGame);
 
-            input.addEventListener(
-                "keydown",
-                function (event) {
-                    if (
-                        event.key === "Enter"
-                    ) {
-                        event.preventDefault();
-
-                        handleStartGame();
-                    }
-                }
-            );
-        });
-
-        console.log(
-            "[APP] Start form ready."
-        );
+        log("Start form ready.");
     }
 
-    /* =====================================================
-       CHARACTER CREATION HANDLER
-       ===================================================== */
+    /* =========================================================
+       CHARACTER FORM
+    ========================================================= */
 
     function getCharacterFormData() {
-        const name =
-            $("character-name");
-
-        const birthdate =
-            $("character-birthdate");
-
-        const shirtName =
-            $("character-shirt-name");
-
-        const country =
-            $("character-country");
-
-        const selectedPosition =
-            document.querySelector(
-                "[data-position].active"
-            );
+        const name = $("character-name");
+        const birthdate = $("character-birthdate");
+        const shirtName = $("character-shirt-name");
+        const country = $("character-country");
 
         return {
-            name: name
-                ? name.value.trim()
-                : "",
-
-            birthdate: birthdate
-                ? birthdate.value
-                : "",
-
-            shirtName: shirtName
-                ? shirtName.value.trim()
-                : "",
-
-            country: country
-                ? country.value
-                : "",
-
-            position:
-                selectedPosition
-                    ? selectedPosition.getAttribute(
-                        "data-position"
-                    )
-                    : ""
+            name: name ? name.value.trim() : "",
+            birthdate: birthdate ? birthdate.value : "",
+            shirtName: shirtName ? shirtName.value.trim() : "",
+            country: country ? country.value : "",
+            position: selectedPosition
         };
+    }
+
+    function calculateAge(birthdate) {
+        if (!birthdate) return 18;
+
+        const birth = new Date(birthdate);
+        const today = new Date();
+
+        if (Number.isNaN(birth.getTime())) {
+            return 18;
+        }
+
+        let age = today.getFullYear() - birth.getFullYear();
+
+        const monthDifference = today.getMonth() - birth.getMonth();
+
+        if (
+            monthDifference < 0 ||
+            (
+                monthDifference === 0 &&
+                today.getDate() < birth.getDate()
+            )
+        ) {
+            age--;
+        }
+
+        return Math.max(1, age);
     }
 
     function saveCharacterData(data) {
@@ -446,350 +342,744 @@
             return false;
         }
 
-        if (!window.S.player) {
-            window.S.player = {};
-        }
+        const player = getPlayer();
 
-        window.S.player.name =
-            data.name;
+        player.name = data.name;
+        player.birthDate = data.birthdate;
+        player.shirtName = data.shirtName || data.name;
+        player.nationality = data.country;
+        player.position = data.position;
+        player.age = calculateAge(data.birthdate);
 
-        window.S.player.birthdate =
-            data.birthdate;
+        touchState();
 
-        window.S.player.shirtName =
-            data.shirtName;
-
-        window.S.player.country =
-            data.country;
-
-        window.S.player.position =
-            data.position;
-
-        if (
-            typeof window.touchState ===
-            "function"
-        ) {
-            window.touchState();
-        }
-
-        console.log(
-            "[APP] Character saved:",
-            window.S.player
-        );
+        log("Character data saved:", {
+            name: player.name,
+            birthDate: player.birthDate,
+            nationality: player.nationality,
+            position: player.position,
+            age: player.age
+        });
 
         return true;
     }
 
-    /* =====================================================
-       DASHBOARD REFRESH
-       ===================================================== */
+    /* =========================================================
+       POSITION SYSTEM
+    ========================================================= */
 
-    function refreshDashboard() {
-        if (!window.S || !window.S.player) {
+    function bindPositionButtons() {
+        const buttons = document.querySelectorAll("[data-position]");
+
+        if (!buttons.length) {
+            warn("Position buttons tidak ditemukan.");
             return;
         }
 
-        const player =
-            window.S.player;
+        buttons.forEach(function (button) {
+            if (button.dataset.positionBound === "true") {
+                return;
+            }
 
-        const name =
-            $("header-player-name");
+            button.dataset.positionBound = "true";
 
-        const money =
-            $("header-money");
+            button.addEventListener("click", function () {
+                selectedPosition = button.dataset.position;
 
-        const followers =
-            $("header-followers");
+                buttons.forEach(function (item) {
+                    item.classList.remove("active");
+                    item.classList.remove("selected");
+                });
 
-        const cardName =
-            $("dashboard-player-name");
+                button.classList.add("active");
+                button.classList.add("selected");
 
-        const cardOvr =
-            $("dashboard-ovr");
+                updateCharacterPreview();
 
-        const cardPosition =
-            $("dashboard-position");
+                log("Position selected:", selectedPosition);
+            });
+        });
 
-        if (name) {
-            name.textContent =
-                player.name ||
-                "Unnamed Player";
+        const defaultButton = document.querySelector(
+            '[data-position="' + selectedPosition + '"]'
+        );
+
+        if (defaultButton) {
+            defaultButton.classList.add("active");
+            defaultButton.classList.add("selected");
         }
 
-        if (money) {
-            money.textContent =
-                formatNumber(
-                    player.money || 0
-                );
-        }
+        log("Position buttons ready.");
+    }
 
-        if (followers) {
-            followers.textContent =
-                formatNumber(
-                    player.followers || 0
-                );
-        }
+    /* =========================================================
+       CHARACTER PREVIEW
+    ========================================================= */
+
+    function updateCharacterPreview() {
+        const data = getCharacterFormData();
+
+        const cardName = $("card-name");
+        const cardPosition = $("card-position");
+        const cardPositionName = $("card-position-name");
+        const cardShirtName = $("card-shirt-name");
 
         if (cardName) {
             cardName.textContent =
-                player.name ||
-                "Unnamed Player";
-        }
-
-        if (cardOvr) {
-            cardOvr.textContent =
-                player.ovr || 0;
+                data.name || "YOUR PLAYER";
         }
 
         if (cardPosition) {
             cardPosition.textContent =
-                player.position ||
-                "ST";
+                selectedPosition;
+        }
+
+        if (cardPositionName) {
+            cardPositionName.textContent =
+                POSITION_NAMES[selectedPosition] ||
+                selectedPosition;
+        }
+
+        if (cardShirtName) {
+            cardShirtName.textContent =
+                (
+                    data.shirtName ||
+                    data.name ||
+                    "PLAYER"
+                ).toUpperCase();
         }
     }
 
-    /* =====================================================
-       NUMBER FORMATTER
-       ===================================================== */
+    /* =========================================================
+       GACHA / STAT GENERATOR
+    ========================================================= */
 
-    function formatNumber(value) {
-        const number =
-            Number(value) || 0;
-
-        return number.toLocaleString(
-            "id-ID"
-        );
+    function randomStat(min, max) {
+        return Math.floor(
+            Math.random() * (max - min + 1)
+        ) + min;
     }
 
-    /* =====================================================
-       BOOT
-       ===================================================== */
+    function calculateCharacterOVR(stats) {
+        const values = [
+            Number(stats.pac) || 0,
+            Number(stats.sho) || 0,
+            Number(stats.pas) || 0,
+            Number(stats.dri) || 0,
+            Number(stats.def) || 0,
+            Number(stats.phy) || 0
+        ];
 
-    async function bootGame() {
-        if (AppState.booted) {
+        const total = values.reduce(
+            function (sum, value) {
+                return sum + value;
+            },
+            0
+        );
+
+        return Math.round(total / values.length);
+    }
+
+    function updateGachaDisplay(stats, ovr) {
+        const elements = {
+            pac: "gacha-pac",
+            sho: "gacha-sho",
+            pas: "gacha-pas",
+            dri: "gacha-dri",
+            def: "gacha-def",
+            phy: "gacha-phy"
+        };
+
+        Object.keys(elements).forEach(function (key) {
+            const element = $(elements[key]);
+
+            if (element) {
+                element.textContent = stats[key];
+            }
+        });
+
+        const ovrElement = $("gacha-ovr");
+
+        if (ovrElement) {
+            ovrElement.textContent = ovr;
+        }
+    }
+
+    function updateCardStats(stats, ovr) {
+        const elements = {
+            pac: "card-pac",
+            sho: "card-sho",
+            pas: "card-pas",
+            dri: "card-dri",
+            def: "card-def",
+            phy: "card-phy"
+        };
+
+        Object.keys(elements).forEach(function (key) {
+            const element = $(elements[key]);
+
+            if (element) {
+                element.textContent = stats[key];
+            }
+        });
+
+        const ovrElement = $("card-ovr");
+
+        if (ovrElement) {
+            ovrElement.textContent = ovr;
+        }
+    }
+
+    function runCharacterGacha() {
+        const stats = {
+            pac: randomStat(45, 75),
+            sho: randomStat(45, 75),
+            pas: randomStat(45, 75),
+            dri: randomStat(45, 75),
+            def: randomStat(35, 70),
+            phy: randomStat(45, 75)
+        };
+
+        switch (selectedPosition) {
+            case "ST":
+                stats.sho += 10;
+                stats.pac += 5;
+                break;
+
+            case "LW":
+            case "RW":
+                stats.pac += 8;
+                stats.dri += 8;
+                break;
+
+            case "CAM":
+            case "CM":
+            case "CDM":
+                stats.pas += 7;
+                stats.dri += 5;
+                break;
+
+            case "CB":
+            case "LB":
+            case "RB":
+            case "LWB":
+            case "RWB":
+                stats.def += 8;
+                stats.phy += 4;
+                break;
+
+            case "GK":
+                stats.def += 10;
+                stats.phy += 5;
+                break;
+        }
+
+        Object.keys(stats).forEach(function (key) {
+            stats[key] = Math.min(
+                99,
+                Math.max(1, Math.round(stats[key]))
+            );
+        });
+
+        const ovr = calculateCharacterOVR(stats);
+
+        window.characterGacha = {
+            stats: stats,
+            ovr: ovr
+        };
+
+        updateGachaDisplay(stats, ovr);
+        updateCardStats(stats, ovr);
+
+        log("Gacha result:", window.characterGacha);
+
+        return window.characterGacha;
+    }
+
+    /* =========================================================
+       CREATE PLAYER
+    ========================================================= */
+
+    function handleCreatePlayer() {
+        const data = getCharacterFormData();
+
+        if (!data.name) {
+            alert("Nama pemain wajib diisi.");
+            $("character-name")?.focus();
             return;
         }
 
-        console.log(
-            "[APP] Boot started."
+        if (!data.birthdate) {
+            alert("Tanggal lahir wajib diisi.");
+            $("character-birthdate")?.focus();
+            return;
+        }
+
+        if (!data.country) {
+            alert("Pilih negara terlebih dahulu.");
+            $("character-country")?.focus();
+            return;
+        }
+
+        data.position = selectedPosition;
+
+        if (!window.characterGacha) {
+            runCharacterGacha();
+        }
+
+        if (!saveCharacterData(data)) {
+            alert("Gagal menyimpan karakter.");
+            return;
+        }
+
+        const player = getPlayer();
+        const stats = window.characterGacha.stats;
+        const ovr = window.characterGacha.ovr;
+
+        player.stats = {
+            pac: stats.pac,
+            sho: stats.sho,
+            pas: stats.pas,
+            dri: stats.dri,
+            def: stats.def,
+            phy: stats.phy
+        };
+
+        player.ovr = ovr;
+
+        player.potential = Math.min(
+            99,
+            Math.max(
+                ovr + 15,
+                75
+            )
         );
 
-        setLoading(
-            5,
-            "Menyiapkan sistem..."
-        );
+        /* Career */
 
-        await wait(150);
+        if (window.S.career) {
+            window.S.career.started = true;
+            window.S.career.startDate =
+                new Date().toISOString().slice(0, 10);
+            window.S.career.careerStatus = "active";
 
-        setLoading(
-            15,
-            "Memuat penyimpanan..."
-        );
-
-        if (
-            typeof window.loadGame ===
-            "function"
-        ) {
-            try {
-                window.loadGame();
-            } catch (error) {
-                console.warn(
-                    "[APP] Load game failed:",
-                    error
-                );
+            if (!window.S.career.currentClub) {
+                window.S.career.currentClub = null;
             }
         }
 
-        await wait(100);
+        /* World */
 
-        setLoading(
-            25,
-            "Memuat database pemain..."
-        );
-
-        if (
-            window.PlayerSystem &&
-            typeof window.PlayerSystem.init ===
-            "function"
-        ) {
-            window.PlayerSystem.init();
+        if (window.S.world) {
+            window.S.world.activeCountry = data.country;
         }
 
-        await wait(100);
+        /* Economy */
 
-        setLoading(
-            40,
-            "Menyiapkan karier..."
-        );
-
-        if (
-            window.CareerSystem &&
-            typeof window.CareerSystem.init ===
-            "function"
-        ) {
-            window.CareerSystem.init();
+        if (player.economy) {
+            if (typeof player.economy.money !== "number") {
+                player.economy.money = 0;
+            }
         }
 
-        await wait(100);
+        /* Social */
 
-        setLoading(
-            55,
-            "Memuat klub..."
-        );
-
-        if (
-            window.ClubsSystem &&
-            typeof window.ClubsSystem.init ===
-            "function"
-        ) {
-            window.ClubsSystem.init();
+        if (player.social) {
+            if (typeof player.social.followers !== "number") {
+                player.social.followers = 0;
+            }
         }
 
-        await wait(100);
+        touchState();
 
-        setLoading(
-            65,
-            "Memuat negara..."
-        );
+        saveGame();
 
-        if (
-            window.CountriesSystem &&
-            typeof window.CountriesSystem.init ===
-            "function"
-        ) {
-            window.CountriesSystem.init();
-        }
+        refreshDashboard();
+        showDashboard();
 
-        await wait(100);
+        log("Player created successfully:", player);
+    }
 
-        setLoading(
-            75,
-            "Memuat kompetisi..."
-        );
+    /* =========================================================
+       CHARACTER BINDING
+    ========================================================= */
+
+    function bindCharacterCreation() {
+        bindPositionButtons();
+
+        const gachaButton = $("gacha-button");
 
         if (
-            window.CompetitionsSystem &&
-            typeof window.CompetitionsSystem.init ===
-            "function"
+            gachaButton &&
+            gachaButton.dataset.bound !== "true"
         ) {
-            window.CompetitionsSystem.init();
-        }
+            gachaButton.dataset.bound = "true";
 
-        await wait(100);
-
-        setLoading(
-            85,
-            "Menyiapkan dunia sepak bola..."
-        );
-
-        if (
-            window.WorldSystem &&
-            typeof window.WorldSystem.init ===
-            "function"
-        ) {
-            window.WorldSystem.init();
-        }
-
-        await wait(100);
-
-        setLoading(
-            95,
-            "Menyiapkan antarmuka..."
-        );
-
-        bindStartForm();
-
-        await wait(150);
-
-        setLoading(
-            100,
-            "RV SPORTS siap dimainkan!"
-        );
-
-        await wait(250);
-
-        /*
-         * Hide loading screen.
-         */
-
-        const loading =
-            $("loading-screen");
-
-        if (loading) {
-            loading.classList.add(
-                "hidden"
+            gachaButton.addEventListener(
+                "click",
+                runCharacterGacha
             );
         }
 
-        /*
-         * Router menentukan screen berikutnya.
-         */
+        const createButton = $("create-player-button");
 
         if (
-            window.Router &&
-            typeof window.Router.initialize ===
-            "function"
+            createButton &&
+            createButton.dataset.bound !== "true"
         ) {
-            /*
-             * Router biasanya sudah auto-init.
-             * Kalau belum, initialize.
-             */
+            createButton.dataset.bound = "true";
 
-            if (
-                !window.Router.state ||
-                !window.Router.state.initialized
-            ) {
-                window.Router.initialize();
+            createButton.addEventListener(
+                "click",
+                handleCreatePlayer
+            );
+        }
+
+        [
+            "character-name",
+            "character-shirt-name",
+            "character-birthdate",
+            "character-country"
+        ].forEach(function (id) {
+            const element = $(id);
+
+            if (!element) return;
+
+            if (element.dataset.previewBound === "true") {
+                return;
             }
-        } else {
-            /*
-             * Fallback kalau Router gagal dimuat.
-             */
 
-            if (
-                window.S &&
-                window.S.player &&
-                window.S.player.name
-            ) {
-                showDashboard();
-            } else {
-                showStartScreen();
+            element.dataset.previewBound = "true";
+
+            element.addEventListener(
+                "input",
+                updateCharacterPreview
+            );
+
+            element.addEventListener(
+                "change",
+                updateCharacterPreview
+            );
+        });
+
+        updateCharacterPreview();
+
+        log("Character creation ready.");
+    }
+
+    /* =========================================================
+       DASHBOARD
+    ========================================================= */
+
+    function refreshDashboard() {
+        const player = getPlayer();
+
+        if (!player) {
+            warn("Player state belum tersedia.");
+            return;
+        }
+
+        const stats = getPlayerStats();
+
+        const money =
+            player.economy &&
+            typeof player.economy.money === "number"
+                ? player.economy.money
+                : 0;
+
+        const followers =
+            player.social &&
+            typeof player.social.followers === "number"
+                ? player.social.followers
+                : 0;
+
+        const clubName =
+            player.career &&
+            player.career.currentClubName
+                ? player.career.currentClubName
+                : "Free Agent";
+
+        /* Header */
+
+        const headerName = $("header-player-name");
+
+        if (headerName) {
+            headerName.textContent =
+                player.name || "Player";
+        }
+
+        const headerClub = $("header-player-club");
+
+        if (headerClub) {
+            headerClub.textContent = clubName;
+        }
+
+        const headerMoney = $("header-money");
+
+        if (headerMoney) {
+            headerMoney.textContent =
+                formatMoney(money);
+        }
+
+        const headerFollowers = $("header-followers");
+
+        if (headerFollowers) {
+            headerFollowers.textContent =
+                formatNumber(followers);
+        }
+
+        /* Dashboard card */
+
+        const dashboardName = $("dashboard-player-name");
+
+        if (dashboardName) {
+            dashboardName.textContent =
+                player.name || "Player";
+        }
+
+        const dashboardOVR = $("dashboard-ovr");
+
+        if (dashboardOVR) {
+            dashboardOVR.textContent =
+                player.ovr || 0;
+        }
+
+        const dashboardPosition = $("dashboard-position");
+
+        if (dashboardPosition) {
+            dashboardPosition.textContent =
+                player.position || "ST";
+        }
+
+        const dashboardStats = {
+            pac: "dashboard-pac",
+            sho: "dashboard-sho",
+            pas: "dashboard-pas",
+            dri: "dashboard-dri",
+            def: "dashboard-def",
+            phy: "dashboard-phy"
+        };
+
+        Object.keys(dashboardStats).forEach(function (key) {
+            const element =
+                $(dashboardStats[key]);
+
+            if (element) {
+                element.textContent =
+                    stats[key] || 0;
+            }
+        });
+
+        /* Player photo */
+
+        updatePlayerPhoto(
+            $("dashboard-player-photo"),
+            $("dashboard-player-placeholder"),
+            player
+        );
+
+        updatePlayerPhoto(
+            $("card-player-photo"),
+            $("card-player-placeholder"),
+            player
+        );
+
+        /* Header avatar */
+
+        const avatar = $("header-avatar");
+
+        if (avatar) {
+            if (player.photo) {
+                avatar.src = player.photo;
+                avatar.classList.remove("hidden");
             }
         }
 
-        AppState.booted = true;
-
-        console.log(
-            "[APP] RV SPORTS: FC CUP 26 boot complete."
-        );
+        log("Dashboard refreshed.");
     }
 
-    /* =====================================================
-       UTILITY
-       ===================================================== */
+    function updatePlayerPhoto(
+        imageElement,
+        placeholderElement,
+        player
+    ) {
+        if (!imageElement || !placeholderElement) {
+            return;
+        }
 
-    function wait(ms) {
-        return new Promise(
-            function (resolve) {
-                setTimeout(
-                    resolve,
-                    ms
-                );
+        if (player.photo) {
+            imageElement.src = player.photo;
+            imageElement.classList.remove("hidden");
+            placeholderElement.classList.add("hidden");
+        } else {
+            imageElement.classList.add("hidden");
+            placeholderElement.classList.remove("hidden");
+        }
+    }
+
+    function formatMoney(value) {
+        const number = Number(value) || 0;
+
+        return number.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 0
             }
         );
     }
 
-    /* =====================================================
+    function formatNumber(value) {
+        const number = Number(value) || 0;
+
+        return number.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 0
+            }
+        );
+    }
+
+    /* =========================================================
+       DASHBOARD NAVIGATION
+    ========================================================= */
+
+    function bindDashboardNavigation() {
+        const pageButtons =
+            document.querySelectorAll("[data-page]");
+
+        pageButtons.forEach(function (button) {
+            if (button.dataset.pageBound === "true") {
+                return;
+            }
+
+            button.dataset.pageBound = "true";
+
+            button.addEventListener("click", function () {
+                const page =
+                    button.dataset.page;
+
+                if (!page) return;
+
+                if (page === "home") {
+                    showDashboard();
+                    return;
+                }
+
+                navigate(page);
+
+                log("Dashboard navigation:", page);
+            });
+        });
+
+        log("Dashboard navigation ready.");
+    }
+
+    /* =========================================================
+       GLOBAL BUTTONS
+    ========================================================= */
+
+    function bindGlobalButtons() {
+        const creatorAccess = $("creator-access");
+
+        if (
+            creatorAccess &&
+            creatorAccess.dataset.bound !== "true"
+        ) {
+            creatorAccess.dataset.bound = "true";
+
+            creatorAccess.addEventListener(
+                "click",
+                function () {
+                    navigate("creator");
+                }
+            );
+        }
+
+        const creatorModeButton =
+            $("creator-mode-button");
+
+        if (
+            creatorModeButton &&
+            creatorModeButton.dataset.bound !== "true"
+        ) {
+            creatorModeButton.dataset.bound = "true";
+
+            creatorModeButton.addEventListener(
+                "click",
+                function () {
+                    navigate("creator");
+                }
+            );
+        }
+
+        const creatorClose =
+            $("creator-close-button");
+
+        if (
+            creatorClose &&
+            creatorClose.dataset.bound !== "true"
+        ) {
+            creatorClose.dataset.bound = "true";
+
+            creatorClose.addEventListener(
+                "click",
+                function () {
+                    showDashboard();
+                }
+            );
+        }
+    }
+
+    /* =========================================================
+       BOOT
+    ========================================================= */
+
+    async function bootGame() {
+        if (AppState.booted) {
+            log("Boot skipped. App already booted.");
+            return;
+        }
+
+        log("Booting RV SPORTS: FC CUP 26...");
+
+        try {
+            if (window.S) {
+                log(
+                    "State detected:",
+                    window.S.meta
+                        ? window.S.meta.version
+                        : "unknown"
+                );
+            } else {
+                warn("window.S belum tersedia.");
+            }
+
+            bindStartForm();
+            bindCharacterCreation();
+            bindDashboardNavigation();
+            bindGlobalButtons();
+
+            AppState.booted = true;
+
+            log("Boot complete.");
+        } catch (error) {
+            console.error(
+                "[APP] Boot error:",
+                error
+            );
+        }
+    }
+
+    /* =========================================================
        PUBLIC API
-       ===================================================== */
+    ========================================================= */
 
     window.App = {
         version: APP_VERSION,
 
         boot: bootGame,
 
-        startGame:
-            handleStartGame,
+        startGame: handleStartGame,
 
         getStartFormData:
             getStartFormData,
@@ -804,13 +1094,26 @@
             saveCharacterData,
 
         refreshDashboard:
-            refreshDashboard
-    };
+            refreshDashboard,
 
-    /*
-     * Global helper untuk kompatibilitas
-     * dengan modul-modul berikutnya.
-     */
+        showStartScreen:
+            showStartScreen,
+
+        showCharacterCreation:
+            showCharacterCreation,
+
+        showDashboard:
+            showDashboard,
+
+        runCharacterGacha:
+            runCharacterGacha,
+
+        createPlayer:
+            handleCreatePlayer,
+
+        updateCharacterPreview:
+            updateCharacterPreview
+    };
 
     window.bootGame = bootGame;
 
@@ -823,11 +1126,9 @@
         APP_VERSION
     );
 
-    /*
-     * Start setelah DOM siap.
-     */
-
-    if (document.readyState === "loading") {
+    if (
+        document.readyState === "loading"
+    ) {
         document.addEventListener(
             "DOMContentLoaded",
             bootGame
