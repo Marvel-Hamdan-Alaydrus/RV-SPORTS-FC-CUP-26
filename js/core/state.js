@@ -387,6 +387,8 @@
      */
 
     window.S = S;
+    window.GAME_NAME = GAME_NAME;
+    window.GAME_VERSION = GAME_VERSION;
 
     /* =====================================================
        STATE MUTATION
