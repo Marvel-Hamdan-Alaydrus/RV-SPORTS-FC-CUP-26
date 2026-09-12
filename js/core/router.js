@@ -1,771 +1,118 @@
 /* =========================================================
    RV SPORTS: FC CUP 26
    ROUTER SYSTEM
+   Version: 2.0.0
    Compatible with current index.html
-========================================================= */
-
-"use strict";
-
-/* =========================================================
-   ROUTER CONFIG
-========================================================= */
-
-const ROUTER_VERSION = "2.0.0";
-
-const ROUTES = {
-    loading: {
-        screenId: "loading-screen",
-        requiresPlayer: false,
-        type: "screen"
-    },
-
-    start: {
-        screenId: "start-screen",
-        requiresPlayer: false,
-        type: "screen"
-    },
-
-    character: {
-        screenId: "character-creation-screen",
-        requiresPlayer: false,
-        type: "screen"
-    },
-
-    dashboard: {
-        screenId: "main-dashboard",
-        requiresPlayer: true,
-        type: "screen"
-    },
-
-    creator: {
-        screenId: "creator-screen",
-        requiresPlayer: true,
-        creatorOnly: true,
-        type: "screen"
-    }
-};
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-const RouterState = {
-    currentRoute: "loading",
-    previousRoute: null,
-    initialized: false,
-    navigating: false,
-    history: [],
-    currentPage: "home",
-    currentEditor: null
-};
-
-
-/* =========================================================
-   BASIC HELPERS
-========================================================= */
-
-function routerElement(id) {
-    return document.getElementById(id);
-}
-
-
-function routerHasPlayer() {
-    try {
-        return (
-            typeof S !== "undefined" &&
-            S &&
-            S.player &&
-            S.player.name &&
-            String(S.player.name).trim() !== ""
-        );
-    } catch (error) {
-        return false;
-    }
-}
-
-
-function routerIsCreator() {
-    try {
-        return (
-            typeof S !== "undefined" &&
-            S &&
-            S.admin &&
-            S.admin.creatorMode === true &&
-            S.admin.authenticated === true
-        );
-    } catch (error) {
-        return false;
-    }
-}
-
-
-/* =========================================================
-   SCREEN MANAGEMENT
-========================================================= */
-
-function getAllScreens() {
-    return Array.from(
-        document.querySelectorAll(".screen")
-    );
-}
-
-
-function hideAllScreens() {
-    const screens = getAllScreens();
-
-    screens.forEach(function(screen) {
-        screen.classList.add("hidden");
-        screen.setAttribute("aria-hidden", "true");
-    });
-}
-
-
-function showScreenById(screenId) {
-    const screen = routerElement(screenId);
-
-    if (!screen) {
-        console.error(
-            "[ROUTER] Screen not found:",
-            screenId
-        );
-
-        return false;
-    }
-
-    hideAllScreens();
-
-    screen.classList.remove("hidden");
-    screen.setAttribute("aria-hidden", "false");
-
-    return true;
-}
-
-
-/* =========================================================
-   ROUTE ACCESS
-========================================================= */
-
-function canAccessRoute(routeName) {
-    const route = ROUTES[routeName];
-
-    if (!route) {
-        return false;
-    }
-
-    if (route.requiresPlayer && !routerHasPlayer()) {
-        return false;
-    }
-
-    if (route.creatorOnly && !routerIsCreator()) {
-        return false;
-    }
-
-    return true;
-}
-
-
-function getFallbackRoute(routeName) {
-    if (routeName === "creator") {
-        return routerHasPlayer()
-            ? "dashboard"
-            : "start";
-    }
-
-    if (
-        routeName === "dashboard" ||
-        routeName === "character"
-    ) {
-        return routerHasPlayer()
-            ? "dashboard"
-            : "start";
-    }
-
-    return "start";
-}
-
-
-/* =========================================================
-   URL / HASH
-========================================================= */
-
-function routeToHash(routeName) {
-    return "#" + routeName;
-}
-
-
-function hashToRoute() {
-    const hash = window.location.hash;
-
-    if (!hash) {
-        return null;
-    }
-
-    return hash
-        .replace(/^#/, "")
-        .trim()
-        .toLowerCase();
-}
-
-
-function updateURL(routeName, replace) {
-    const hash = routeToHash(routeName);
-
-    if (replace) {
-        history.replaceState(
-            {
-                route: routeName
-            },
-            "",
-            hash
-        );
-    } else {
-        history.pushState(
-            {
-                route: routeName
-            },
-            "",
-            hash
-        );
-    }
-}
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-function navigate(routeName, options) {
-    options = options || {};
-
-    if (RouterState.navigating) {
-        return false;
-    }
-
-    routeName = String(routeName || "")
-        .trim()
-        .toLowerCase();
-
-    if (!routeName) {
-        return false;
-    }
-
-    const route = ROUTES[routeName];
-
-    if (!route) {
-        console.warn(
-            "[ROUTER] Unknown route:",
-            routeName
-        );
-
-        return false;
-    }
-
-    if (!canAccessRoute(routeName)) {
-        const fallback = getFallbackRoute(routeName);
-
-        if (fallback !== routeName) {
-            return navigate(fallback, {
-                replace: true,
-                silent: options.silent
-            });
-        }
-
-        return false;
-    }
-
-    RouterState.navigating = true;
-
-    try {
-        const previous = RouterState.currentRoute;
-
-        if (
-            previous &&
-            previous !== routeName
-        ) {
-            RouterState.previousRoute = previous;
-
-            RouterState.history.push(
-                previous
-            );
-
-            if (RouterState.history.length > 30) {
-                RouterState.history.shift();
-            }
-        }
-
-        const success = showScreenById(
-            route.screenId
-        );
-
-        if (!success) {
-            return false;
-        }
-
-        RouterState.currentRoute = routeName;
-
-        if (
-            routeName === "dashboard"
-        ) {
-            RouterState.currentPage = "home";
-        }
-
-        if (!options.skipURL) {
-            updateURL(
-                routeName,
-                options.replace === true
-            );
-        }
-
-        syncNavigationUI(routeName);
-
-        runRouteEnter(routeName);
-
-        console.log(
-            "[ROUTER] Navigated:",
-            previous,
-            "→",
-            routeName
-        );
-
-        return true;
-
-    } finally {
-        RouterState.navigating = false;
-    }
-}
-
-
-/* =========================================================
-   ROUTE ENTER
-========================================================= */
-
-function runRouteEnter(routeName) {
-
-    try {
-
-        switch (routeName) {
-
-            case "start":
-                runStartRoute();
-                break;
-
-            case "character":
-                runCharacterRoute();
-                break;
-
-            case "dashboard":
-                runDashboardRoute();
-                break;
-
-            case "creator":
-                runCreatorRoute();
-                break;
-
-            case "loading":
-                break;
-        }
-
-    } catch (error) {
-
-        console.error(
-            "[ROUTER] Route enter error:",
-            routeName,
-            error
-        );
-
-    }
-}
-
-
-/* =========================================================
-   START ROUTE
-========================================================= */
-
-function runStartRoute() {
-
-    const emailInput =
-        routerElement("player-email");
-
-    const nameInput =
-        routerElement("player-account-name");
-
-    if (emailInput) {
-        emailInput.focus();
-    }
-
-    if (routerHasPlayer()) {
-
-        if (nameInput) {
-            nameInput.value =
-                S.player.name || "";
-        }
-
-        if (
-            emailInput &&
-            S.player.email
-        ) {
-            emailInput.value =
-                S.player.email;
-        }
-    }
-}
-
-
-/* =========================================================
-   CHARACTER ROUTE
-========================================================= */
-
-function runCharacterRoute() {
-
-    if (typeof populateCountrySelect === "function") {
-        try {
-            populateCountrySelect();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Country selector unavailable."
-            );
-        }
-    }
-
-    if (typeof updateCharacterPreview === "function") {
-        try {
-            updateCharacterPreview();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Character preview unavailable."
-            );
-        }
-    }
-}
-
-
-/* =========================================================
-   DASHBOARD ROUTE
-========================================================= */
-
-function runDashboardRoute() {
-
-    if (
-        typeof updateDashboard === "function"
-    ) {
-        try {
-            updateDashboard();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Dashboard update unavailable."
-            );
-        }
-    }
-
-    if (
-        typeof updatePlayerCard === "function"
-    ) {
-        try {
-            updatePlayerCard();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Player card update unavailable."
-            );
-        }
-    }
-
-    if (
-        typeof refreshNavbar === "function"
-    ) {
-        try {
-            refreshNavbar();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Navbar refresh unavailable."
-            );
-        }
-    }
-}
-
-
-/* =========================================================
-   CREATOR ROUTE
-========================================================= */
-
-function runCreatorRoute() {
-
-    if (!routerIsCreator()) {
-        console.warn(
-            "[ROUTER] Creator access denied."
-        );
-
-        navigate("dashboard", {
-            replace: true
-        });
-
-        return;
-    }
-
-    if (
-        typeof refreshCreatorConsole === "function"
-    ) {
-        try {
-            refreshCreatorConsole();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Creator console refresh unavailable."
-            );
-        }
-    }
-
-    if (
-        typeof renderCreatorLog === "function"
-    ) {
-        try {
-            renderCreatorLog();
-        } catch (error) {
-            console.warn(
-                "[ROUTER] Creator log unavailable."
-            );
-        }
-    }
-}
-
-
-/* =========================================================
-   DASHBOARD SUB-PAGES
-========================================================= */
-
-/*
-   Dashboard sub-pages do NOT have separate screens
-   in the current index.html.
-
-   Therefore these functions notify the corresponding
-   system/UI module instead of looking for:
-   career-screen, club-screen, etc.
-*/
-
-function openDashboardPage(pageName) {
-
-    pageName = String(pageName || "")
-        .trim()
-        .toLowerCase();
-
-    const validPages = [
-        "home",
-        "career",
-        "club",
-        "transfer",
-        "training",
-        "social",
-        "trophies",
-        "profile",
-        "settings"
-    ];
-
-    if (!validPages.includes(pageName)) {
-
-        console.warn(
-            "[ROUTER] Unknown dashboard page:",
-            pageName
-        );
-
-        return false;
-    }
-
-    if (!routerHasPlayer()) {
-        navigate("start");
-        return false;
-    }
-
-    RouterState.currentPage =
-        pageName;
-
-    updateDashboardNavigation(
-        pageName
-    );
-
-    /*
-       Home remains inside the dashboard.
-    */
-
-    if (pageName === "home") {
-        navigate("dashboard", {
-            skipURL: true
-        });
-
-        return true;
-    }
-
-    /*
-       If a UI page renderer exists,
-       let that module handle it.
-    */
-
-    const rendererName =
-        "open" +
-        capitalize(pageName) +
-        "Page";
-
-    if (
-        typeof window[rendererName] ===
-        "function"
-    ) {
-
-        try {
-
-            window[rendererName]();
-
-            console.log(
-                "[ROUTER] Dashboard page opened:",
-                pageName
-            );
-
-            return true;
-
-        } catch (error) {
-
-            console.error(
-                "[ROUTER] Page renderer error:",
-                pageName,
-                error
-            );
-
-            return false;
-        }
-    }
-
-    /*
-       Until the page module exists,
-       stay safely on dashboard.
-    */
-
-    console.log(
-        "[ROUTER] Page module not ready yet:",
-        pageName
-    );
-
-    navigate("dashboard", {
-        skipURL: true
-    });
-
-    return true;
-}
-
-
-/* =========================================================
-   CREATOR EDITORS
-========================================================= */
-
-function openCreatorEditor(editorName) {
-
-    if (!routerIsCreator()) {
-        console.warn(
-            "[ROUTER] Creator mode is not active."
-        );
-
-        return false;
-    }
-
-    editorName = String(editorName || "")
-        .trim()
-        .toLowerCase();
-
-    const validEditors = [
-        "character",
-        "economy",
-        "career",
-        "clubs",
-        "trophies",
-        "world",
-        "social",
-        "god",
-        "backup"
-    ];
-
-    if (!validEditors.includes(editorName)) {
-
-        console.warn(
-            "[ROUTER] Unknown creator editor:",
-            editorName
-        );
-
-        return false;
-    }
-
-    RouterState.currentEditor =
-        editorName;
-
-    const editorContainer =
-        routerElement("creator-editor");
-
-    if (!editorContainer) {
-        console.error(
-            "[ROUTER] #creator-editor not found."
-        );
-
-        return false;
-    }
-
-    /*
-       Map editor names to renderer functions.
-    */
-
-    const rendererMap = {
-
-        character:
-            "renderCharacterEditor",
-
-        economy:
-            "renderEconomyEditor",
-
-        career:
-            "renderCareerEditor",
-
-        clubs:
-            "renderClubHistoryEditor",
-
-        trophies:
-            "renderTrophyEditor",
-
-        world:
-            "renderWorldEditor",
-
-        social:
-            "renderSocialEditor",
-
-        god:
-            "renderGodModeEditor",
-
-        backup:
-            "renderBackupEditor"
+   ========================================================= */
+
+(function () {
+    "use strict";
+
+    const ROUTER_VERSION = "2.0.0";
+
+    /* =====================================================
+       ROUTES
+       ===================================================== */
+
+    const ROUTES = {
+        loading: "loading-screen",
+        start: "start-screen",
+        character: "character-creation-screen",
+        dashboard: "main-dashboard",
+        creator: "creator-screen"
     };
 
-    const rendererName =
-        rendererMap[editorName];
+    const DEFAULT_ROUTE = "start";
 
-    if (
-        rendererName &&
-        typeof window[rendererName] ===
-        "function"
-    ) {
+    /* =====================================================
+       STATE
+       ===================================================== */
 
-        try {
+    const RouterState = {
+        currentRoute: null,
+        previousRoute: null,
+        initialized: false,
+        navigating: false
+    };
 
-            window[rendererName]();
+    /* =====================================================
+       ELEMENT HELPERS
+       ===================================================== */
 
-            updateCreatorEditorNavigation(
-                editorName
-            );
+    function getElement(id) {
+        return document.getElementById(id);
+    }
 
-            console.log(
-                "[ROUTER] Creator editor opened:",
-                editorName
-            );
+    function getRouteElement(route) {
+        const screenId = ROUTES[route];
 
-            return true;
+        if (!screenId) {
+            return null;
+        }
 
-        } catch (error) {
+        return getElement(screenId);
+    }
 
+    function getAllScreens() {
+        return Array.from(document.querySelectorAll(".screen"));
+    }
+
+    /* =====================================================
+       SCREEN MANAGEMENT
+       ===================================================== */
+
+    function hideAllScreens() {
+        const screens = getAllScreens();
+
+        screens.forEach(function (screen) {
+            screen.classList.add("hidden");
+            screen.setAttribute("aria-hidden", "true");
+        });
+    }
+
+    function showScreenElement(screen) {
+        if (!screen) {
+            return false;
+        }
+
+        hideAllScreens();
+
+        screen.classList.remove("hidden");
+        screen.setAttribute("aria-hidden", "false");
+
+        return true;
+    }
+
+    function showRoute(route) {
+        const screen = getRouteElement(route);
+
+        if (!screen) {
             console.error(
-                "[ROUTER] Creator editor error:",
-                editorName,
+                "[ROUTER] Screen not found for route:",
+                route
+            );
+
+            return false;
+        }
+
+        return showScreenElement(screen);
+    }
+
+    /* =====================================================
+       PLAYER CHECK
+       ===================================================== */
+
+    function hasPlayer() {
+        try {
+            return !!(
+                window.S &&
+                window.S.player &&
+                typeof window.S.player.name === "string" &&
+                window.S.player.name.trim() !== ""
+            );
+        } catch (error) {
+            console.warn(
+                "[ROUTER] Failed to check player:",
                 error
             );
 
@@ -773,547 +120,810 @@ function openCreatorEditor(editorName) {
         }
     }
 
-    /*
-       Editor belum dibuat.
-       Jangan error, tampilkan placeholder.
-    */
+    /* =====================================================
+       CREATOR CHECK
+       ===================================================== */
 
-    editorContainer.innerHTML = `
-        <div class="empty-editor">
-            <h3>${escapeRouterHTML(
-                getEditorTitle(editorName)
-            )}</h3>
+    function isCreatorAuthenticated() {
+        try {
+            return !!(
+                window.S &&
+                window.S.admin &&
+                window.S.admin.creatorMode === true &&
+                window.S.admin.authenticated === true
+            );
+        } catch (error) {
+            return false;
+        }
+    }
 
-            <p>
-                Editor ini sedang disiapkan.
-            </p>
-        </div>
-    `;
+    /* =====================================================
+       HASH HELPERS
+       ===================================================== */
 
-    updateCreatorEditorNavigation(
-        editorName
-    );
-
-    console.log(
-        "[ROUTER] Creator editor placeholder:",
-        editorName
-    );
-
-    return true;
-}
-
-
-/* =========================================================
-   NAVIGATION UI
-========================================================= */
-
-function syncNavigationUI(routeName) {
-
-    const bottomItems =
-        document.querySelectorAll(
-            ".bottom-nav-item"
-        );
-
-    bottomItems.forEach(function(item) {
-
-        const page =
-            item.dataset.page;
-
-        item.classList.toggle(
-            "active",
-            routeName === "dashboard" &&
-            page === RouterState.currentPage
-        );
-    });
-
-    updateDashboardNavigation(
-        RouterState.currentPage
-    );
-}
-
-
-function updateDashboardNavigation(
-    pageName
-) {
-
-    const items =
-        document.querySelectorAll(
-            "[data-page]"
-        );
-
-    items.forEach(function(item) {
-
-        const page =
-            item.dataset.page;
-
-        if (!page) {
-            return;
+    function normalizeRoute(route) {
+        if (!route) {
+            return DEFAULT_ROUTE;
         }
 
-        item.classList.toggle(
-            "active",
-            page === pageName
-        );
-    });
-}
+        route = String(route)
+            .replace(/^#/, "")
+            .trim()
+            .toLowerCase();
 
+        if (!ROUTES[route]) {
+            return DEFAULT_ROUTE;
+        }
 
-function updateCreatorEditorNavigation(
-    editorName
-) {
+        return route;
+    }
 
-    const items =
-        document.querySelectorAll(
-            "[data-editor]"
-        );
+    function getHashRoute() {
+        const hash = window.location.hash;
 
-    items.forEach(function(item) {
+        if (!hash) {
+            return null;
+        }
 
-        item.classList.toggle(
-            "active",
-            item.dataset.editor === editorName
-        );
-    });
-}
+        return normalizeRoute(hash);
+    }
 
+    function updateHash(route) {
+        const cleanRoute = normalizeRoute(route);
+        const newHash = "#" + cleanRoute;
 
-/* =========================================================
-   BACK / HOME
-========================================================= */
-
-function goBack() {
-
-    if (
-        RouterState.history.length > 0
-    ) {
-
-        const previous =
-            RouterState.history.pop();
-
-        if (
-            previous &&
-            ROUTES[previous]
-        ) {
-
-            return navigate(
-                previous,
-                {
-                    skipURL: false
-                }
+        if (window.location.hash !== newHash) {
+            history.replaceState(
+                null,
+                "",
+                window.location.pathname +
+                window.location.search +
+                newHash
             );
         }
     }
 
-    return goHome();
-}
+    /* =====================================================
+       ROUTE GUARDS
+       ===================================================== */
 
+    function canEnterRoute(route) {
+        route = normalizeRoute(route);
 
-function goHome() {
-
-    if (routerHasPlayer()) {
-        return navigate("dashboard");
-    }
-
-    return navigate("start");
-}
-
-
-/* =========================================================
-   CREATOR
-========================================================= */
-
-function openCreator() {
-
-    if (!routerHasPlayer()) {
-        navigate("start");
-        return false;
-    }
-
-    if (!routerIsCreator()) {
-
-        console.warn(
-            "[ROUTER] Creator Mode unavailable."
-        );
-
-        return false;
-    }
-
-    return navigate("creator");
-}
-
-
-function closeCreator() {
-
-    RouterState.currentEditor =
-        null;
-
-    return navigate("dashboard");
-}
-
-
-/* =========================================================
-   EVENT HANDLERS
-========================================================= */
-
-function setupRouterEvents() {
-
-    /*
-       Browser back / forward
-    */
-
-    window.addEventListener(
-        "popstate",
-        function() {
-
-            const route =
-                hashToRoute();
-
-            if (
-                route &&
-                ROUTES[route]
-            ) {
-
-                navigate(route, {
-                    skipURL: true
-                });
-
-            } else {
-
-                goHome();
-            }
+        if (route === "loading") {
+            return true;
         }
-    );
 
-
-    /*
-       Hash changes
-    */
-
-    window.addEventListener(
-        "hashchange",
-        function() {
-
-            const route =
-                hashToRoute();
-
-            if (
-                route &&
-                ROUTES[route]
-            ) {
-
-                navigate(route, {
-                    skipURL: true
-                });
-            }
+        if (route === "start") {
+            return true;
         }
-    );
 
+        if (route === "character") {
+            return true;
+        }
 
-    /*
-       Dashboard menu
-    */
-
-    document.addEventListener(
-        "click",
-        function(event) {
-
-            const pageButton =
-                event.target.closest(
-                    "[data-page]"
+        if (route === "dashboard") {
+            if (!hasPlayer()) {
+                console.warn(
+                    "[ROUTER] Dashboard requested without player."
                 );
 
-            if (!pageButton) {
-                return;
+                return false;
             }
 
-            const page =
-                pageButton.dataset.page;
+            return true;
+        }
 
-            if (!page) {
-                return;
+        if (route === "creator") {
+            if (!isCreatorAuthenticated()) {
+                console.warn(
+                    "[ROUTER] Creator route blocked."
+                );
+
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    function getFallbackRoute(route) {
+        route = normalizeRoute(route);
+
+        if (route === "dashboard" && !hasPlayer()) {
+            return "start";
+        }
+
+        if (route === "creator" && !isCreatorAuthenticated()) {
+            return hasPlayer() ? "dashboard" : "start";
+        }
+
+        return route;
+    }
+
+    /* =====================================================
+       DASHBOARD PAGE
+       ===================================================== */
+
+    function openDashboardPage(page) {
+        page = String(page || "home").toLowerCase();
+
+        console.log(
+            "[ROUTER] Dashboard page:",
+            page
+        );
+
+        /*
+         * Dashboard pada index.html saat ini adalah
+         * satu screen:
+         *
+         * #main-dashboard
+         *
+         * Menu menggunakan:
+         * [data-page="career"]
+         * [data-page="club"]
+         * [data-page="transfer"]
+         * dst.
+         *
+         * Jadi router tidak mencari screen tambahan
+         * yang belum ada.
+         */
+
+        if (!getElement(ROUTES.dashboard)) {
+            console.error(
+                "[ROUTER] Main dashboard not found."
+            );
+
+            return false;
+        }
+
+        /*
+         * Jika nanti sistem UI memiliki renderer khusus,
+         * router akan mencoba menjalankannya.
+         */
+
+        const rendererMap = {
+            home: "renderHomePage",
+            career: "renderCareerPage",
+            club: "renderClubPage",
+            transfer: "renderTransferPage",
+            training: "renderTrainingPage",
+            social: "renderSocialPage",
+            trophies: "renderTrophiesPage",
+            profile: "renderProfilePage",
+            settings: "renderSettingsPage"
+        };
+
+        const rendererName = rendererMap[page];
+
+        if (
+            rendererName &&
+            typeof window[rendererName] === "function"
+        ) {
+            try {
+                window[rendererName]();
+            } catch (error) {
+                console.error(
+                    "[ROUTER] Page renderer failed:",
+                    rendererName,
+                    error
+                );
+            }
+        }
+
+        /*
+         * Simpan halaman dashboard aktif.
+         */
+
+        try {
+            if (window.S && window.S.ui) {
+                window.S.ui.currentPage = page;
+            }
+        } catch (error) {
+            console.warn(
+                "[ROUTER] Could not save current page.",
+                error
+            );
+        }
+
+        /*
+         * Update active menu.
+         */
+
+        document
+            .querySelectorAll("[data-page]")
+            .forEach(function (button) {
+                const buttonPage =
+                    String(
+                        button.getAttribute("data-page") || ""
+                    ).toLowerCase();
+
+                button.classList.toggle(
+                    "active",
+                    buttonPage === page
+                );
+            });
+
+        return true;
+    }
+
+    /* =====================================================
+       CREATOR EDITOR
+       ===================================================== */
+
+    function openCreatorEditor(editor) {
+        editor = String(editor || "character").toLowerCase();
+
+        console.log(
+            "[ROUTER] Creator editor:",
+            editor
+        );
+
+        if (!isCreatorAuthenticated()) {
+            console.warn(
+                "[ROUTER] Creator editor blocked."
+            );
+
+            return false;
+        }
+
+        const editorContainer =
+            getElement("creator-editor");
+
+        /*
+         * Editor renderer names.
+         *
+         * File yang nanti akan menangani masing-masing
+         * editor dapat mengekspos function global.
+         */
+
+        const rendererMap = {
+            character: "renderCharacterEditor",
+            economy: "renderEconomyEditor",
+            career: "renderCareerEditor",
+            clubs: "renderClubsEditor",
+            trophies: "renderTrophiesEditor",
+            world: "renderWorldEditor",
+            social: "renderSocialEditor",
+            god: "renderGodEditor",
+            backup: "renderBackupEditor"
+        };
+
+        const rendererName = rendererMap[editor];
+
+        if (
+            rendererName &&
+            typeof window[rendererName] === "function"
+        ) {
+            try {
+                window[rendererName]();
+
+                setActiveEditor(editor);
+
+                return true;
+            } catch (error) {
+                console.error(
+                    "[ROUTER] Creator renderer failed:",
+                    rendererName,
+                    error
+                );
+
+                return false;
+            }
+        }
+
+        /*
+         * Kalau editor belum dibuat, jangan bikin error.
+         * Tampilkan status sementara.
+         */
+
+        if (editorContainer) {
+            editorContainer.innerHTML = `
+                <div class="creator-editor-placeholder">
+                    <h3>${escapeHTML(
+                        formatEditorName(editor)
+                    )}</h3>
+
+                    <p>
+                        Editor ini belum diaktifkan.
+                        Sistem router sudah siap menerima
+                        modul editor tersebut.
+                    </p>
+                </div>
+            `;
+        }
+
+        setActiveEditor(editor);
+
+        return true;
+    }
+
+    function setActiveEditor(editor) {
+        document
+            .querySelectorAll("[data-editor]")
+            .forEach(function (button) {
+                const buttonEditor =
+                    String(
+                        button.getAttribute("data-editor") || ""
+                    ).toLowerCase();
+
+                button.classList.toggle(
+                    "active",
+                    buttonEditor === editor
+                );
+            });
+    }
+
+    function formatEditorName(editor) {
+        const names = {
+            character: "Character Editor",
+            economy: "Economy Editor",
+            career: "Career Editor",
+            clubs: "Clubs Editor",
+            trophies: "Trophies Editor",
+            world: "World Editor",
+            social: "Social Editor",
+            god: "God Mode",
+            backup: "Backup & Restore"
+        };
+
+        return names[editor] || "Creator Editor";
+    }
+
+    /* =====================================================
+       HTML ESCAPE
+       ===================================================== */
+
+    function escapeHTML(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    /* =====================================================
+       MAIN NAVIGATION
+       ===================================================== */
+
+    function navigate(route, options) {
+        options = options || {};
+
+        route = normalizeRoute(route);
+
+        if (RouterState.navigating) {
+            return false;
+        }
+
+        RouterState.navigating = true;
+
+        try {
+            const originalRoute = route;
+
+            if (!canEnterRoute(route)) {
+                route = getFallbackRoute(route);
+
+                console.warn(
+                    "[ROUTER] Route blocked:",
+                    originalRoute,
+                    "→ fallback:",
+                    route
+                );
+            }
+
+            const success = showRoute(route);
+
+            if (!success) {
+                console.error(
+                    "[ROUTER] Navigation failed:",
+                    route
+                );
+
+                return false;
+            }
+
+            RouterState.previousRoute =
+                RouterState.currentRoute;
+
+            RouterState.currentRoute = route;
+
+            if (!options.skipHash) {
+                updateHash(route);
             }
 
             /*
-               Creator buttons don't use
-               data-page, so this is safe.
-            */
+             * Route-specific initialization.
+             */
 
-            if (
-                RouterState.currentRoute !==
-                "dashboard"
-            ) {
-
-                if (!routerHasPlayer()) {
-                    return;
-                }
-
-                navigate("dashboard", {
-                    skipURL: true
-                });
-            }
-
-            openDashboardPage(page);
-        }
-    );
-
-
-    /*
-       Creator menu
-    */
-
-    document.addEventListener(
-        "click",
-        function(event) {
-
-            const editorButton =
-                event.target.closest(
-                    "[data-editor]"
+            if (route === "dashboard") {
+                openDashboardPage(
+                    options.page ||
+                    (
+                        window.S &&
+                        window.S.ui &&
+                        window.S.ui.currentPage
+                    ) ||
+                    "home"
                 );
-
-            if (!editorButton) {
-                return;
             }
 
-            const editor =
-                editorButton.dataset.editor;
-
-            if (!editor) {
-                return;
+            if (route === "creator") {
+                openCreatorEditor(
+                    options.editor || "character"
+                );
             }
 
-            openCreatorEditor(editor);
+            /*
+             * Focus helper.
+             */
+
+            const screen = getRouteElement(route);
+
+            if (screen) {
+                const focusTarget =
+                    screen.querySelector(
+                        "input, button, select, textarea"
+                    );
+
+                if (
+                    focusTarget &&
+                    route !== "dashboard" &&
+                    route !== "creator"
+                ) {
+                    setTimeout(function () {
+                        try {
+                            focusTarget.focus();
+                        } catch (error) {
+                            // Ignore focus errors.
+                        }
+                    }, 50);
+                }
+            }
+
+            console.log(
+                "[ROUTER] Navigated:",
+                RouterState.previousRoute,
+                "→",
+                route
+            );
+
+            return true;
+
+        } finally {
+            RouterState.navigating = false;
         }
-    );
-
-
-    /*
-       Creator close
-    */
-
-    const creatorClose =
-        routerElement(
-            "creator-close-button"
-        );
-
-    if (creatorClose) {
-
-        creatorClose.addEventListener(
-            "click",
-            function() {
-                closeCreator();
-            }
-        );
     }
-}
 
+    /* =====================================================
+       DASHBOARD NAVIGATION
+       ===================================================== */
 
-/* =========================================================
-   INITIAL ROUTE
-========================================================= */
-
-function determineInitialRoute() {
-
-    const requested =
-        hashToRoute();
-
-    /*
-       If player already exists,
-       dashboard is preferred.
-    */
-
-    if (routerHasPlayer()) {
-
-        if (
-            requested &&
-            ROUTES[requested] &&
-            canAccessRoute(requested)
-        ) {
-
-            return requested;
+    function navigateDashboardPage(page) {
+        if (!hasPlayer()) {
+            navigate("start");
+            return false;
         }
 
-        return "dashboard";
-    }
+        if (!showRoute("dashboard")) {
+            return false;
+        }
 
-    /*
-       New game starts at Start screen.
-    */
+        RouterState.previousRoute =
+            RouterState.currentRoute;
 
-    if (
-        requested === "character"
-    ) {
-        return "character";
-    }
+        RouterState.currentRoute =
+            "dashboard";
 
-    if (
-        requested === "start"
-    ) {
-        return "start";
-    }
+        openDashboardPage(page);
 
-    return "start";
-}
+        updateHash("dashboard");
 
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-function initializeRouter() {
-
-    if (RouterState.initialized) {
         return true;
     }
 
-    setupRouterEvents();
+    /* =====================================================
+       CREATOR NAVIGATION
+       ===================================================== */
 
-    const initialRoute =
-        determineInitialRoute();
+    function navigateCreatorEditor(editor) {
+        if (!isCreatorAuthenticated()) {
+            console.warn(
+                "[ROUTER] Creator access denied."
+            );
 
-    /*
-       Replace URL instead of adding
-       unnecessary browser history.
-    */
+            navigate(
+                hasPlayer() ? "dashboard" : "start"
+            );
 
-    navigate(
-        initialRoute,
-        {
-            replace: true
+            return false;
         }
-    );
 
-    RouterState.initialized = true;
+        if (!showRoute("creator")) {
+            return false;
+        }
 
-    console.log(
-        "[ROUTER] Initialized at:",
-        RouterState.currentRoute
-    );
+        RouterState.previousRoute =
+            RouterState.currentRoute;
 
-    return true;
-}
+        RouterState.currentRoute =
+            "creator";
 
+        openCreatorEditor(editor);
 
-/* =========================================================
-   GETTERS
-========================================================= */
+        updateHash("creator");
 
-function getCurrentRoute() {
-    return RouterState.currentRoute;
-}
-
-
-function getPreviousRoute() {
-    return RouterState.previousRoute;
-}
-
-
-function getCurrentPage() {
-    return RouterState.currentPage;
-}
-
-
-function getCurrentEditor() {
-    return RouterState.currentEditor;
-}
-
-
-function isDashboard() {
-    return (
-        RouterState.currentRoute ===
-        "dashboard"
-    );
-}
-
-
-function isCreator() {
-    return (
-        RouterState.currentRoute ===
-        "creator"
-    );
-}
-
-
-/* =========================================================
-   UTILS
-========================================================= */
-
-function capitalize(value) {
-
-    value = String(value || "");
-
-    if (!value) {
-        return "";
+        return true;
     }
 
-    return (
-        value.charAt(0).toUpperCase() +
-        value.slice(1)
+    /* =====================================================
+       EVENT DELEGATION
+       ===================================================== */
+
+    function bindNavigationEvents() {
+        /*
+         * Dashboard:
+         * [data-page]
+         */
+
+        document.addEventListener(
+            "click",
+            function (event) {
+                const pageButton =
+                    event.target.closest("[data-page]");
+
+                if (pageButton) {
+                    event.preventDefault();
+
+                    const page =
+                        pageButton.getAttribute(
+                            "data-page"
+                        );
+
+                    if (page) {
+                        navigateDashboardPage(page);
+                    }
+
+                    return;
+                }
+
+                /*
+                 * Creator:
+                 * [data-editor]
+                 */
+
+                const editorButton =
+                    event.target.closest("[data-editor]");
+
+                if (editorButton) {
+                    event.preventDefault();
+
+                    const editor =
+                        editorButton.getAttribute(
+                            "data-editor"
+                        );
+
+                    if (editor) {
+                        navigateCreatorEditor(editor);
+                    }
+
+                    return;
+                }
+
+                /*
+                 * Creator close button
+                 */
+
+                const closeCreator =
+                    event.target.closest(
+                        "#creator-close-button"
+                    );
+
+                if (closeCreator) {
+                    event.preventDefault();
+
+                    navigate(
+                        hasPlayer()
+                            ? "dashboard"
+                            : "start"
+                    );
+                }
+            }
+        );
+
+        /*
+         * Browser back / forward.
+         */
+
+        window.addEventListener(
+            "popstate",
+            function () {
+                handleHashRoute();
+            }
+        );
+
+        window.addEventListener(
+            "hashchange",
+            function () {
+                handleHashRoute();
+            }
+        );
+    }
+
+    /* =====================================================
+       HASH ROUTE HANDLER
+       ===================================================== */
+
+    function handleHashRoute() {
+        if (RouterState.navigating) {
+            return;
+        }
+
+        let route = getHashRoute();
+
+        if (!route) {
+            route = hasPlayer()
+                ? "dashboard"
+                : DEFAULT_ROUTE;
+        }
+
+        navigate(route, {
+            skipHash: true
+        });
+    }
+
+    /* =====================================================
+       INITIAL ROUTE
+       ===================================================== */
+
+    function determineInitialRoute() {
+        const hashRoute = getHashRoute();
+
+        if (hashRoute) {
+            if (
+                hashRoute === "dashboard" &&
+                !hasPlayer()
+            ) {
+                return "start";
+            }
+
+            if (
+                hashRoute === "creator" &&
+                !isCreatorAuthenticated()
+            ) {
+                return hasPlayer()
+                    ? "dashboard"
+                    : "start";
+            }
+
+            return hashRoute;
+        }
+
+        if (hasPlayer()) {
+            return "dashboard";
+        }
+
+        return "start";
+    }
+
+    /* =====================================================
+       INITIALIZE
+       ===================================================== */
+
+    function initializeRouter() {
+        if (RouterState.initialized) {
+            console.warn(
+                "[ROUTER] Already initialized."
+            );
+
+            return;
+        }
+
+        bindNavigationEvents();
+
+        RouterState.initialized = true;
+
+        const initialRoute =
+            determineInitialRoute();
+
+        navigate(initialRoute);
+
+        console.log(
+            "[ROUTER] Initialized at:",
+            RouterState.currentRoute
+        );
+    }
+
+    /* =====================================================
+       PUBLIC API
+       ===================================================== */
+
+    window.Router = {
+        version: ROUTER_VERSION,
+
+        routes: ROUTES,
+
+        state: RouterState,
+
+        navigate: navigate,
+
+        go: navigate,
+
+        initialize: initializeRouter,
+
+        init: initializeRouter,
+
+        showRoute: showRoute,
+
+        hideAllScreens: hideAllScreens,
+
+        navigateDashboardPage:
+            navigateDashboardPage,
+
+        navigateCreatorEditor:
+            navigateCreatorEditor,
+
+        openDashboardPage:
+            openDashboardPage,
+
+        openCreatorEditor:
+            openCreatorEditor,
+
+        hasPlayer: hasPlayer,
+
+        isCreatorAuthenticated:
+            isCreatorAuthenticated,
+
+        getCurrentRoute: function () {
+            return RouterState.currentRoute;
+        },
+
+        getPreviousRoute: function () {
+            return RouterState.previousRoute;
+        }
+    };
+
+    /*
+     * Global helper supaya modul lain bisa langsung
+     * memanggil navigate("dashboard"), dll.
+     */
+
+    window.navigate = navigate;
+
+    window.showRoute = showRoute;
+
+    window.openDashboardPage =
+        openDashboardPage;
+
+    window.openCreatorEditor =
+        openCreatorEditor;
+
+    /* =====================================================
+       AUTO START
+       ===================================================== */
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initializeRouter
+        );
+    } else {
+        initializeRouter();
+    }
+
+    /* =====================================================
+       DEBUG LOG
+       ===================================================== */
+
+    console.log(
+        "RV SPORTS: FC CUP 26 Router loaded."
     );
-}
 
+    console.log(
+        "[ROUTER] Version:",
+        ROUTER_VERSION
+    );
 
-function escapeRouterHTML(value) {
-
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-
-/* =========================================================
-   GLOBAL API
-========================================================= */
-
-window.ROUTES = ROUTES;
-window.RouterState = RouterState;
-
-window.navigate = navigate;
-window.goBack = goBack;
-window.goHome = goHome;
-
-window.openCreator = openCreator;
-window.closeCreator = closeCreator;
-
-window.openDashboardPage =
-    openDashboardPage;
-
-window.openCreatorEditor =
-    openCreatorEditor;
-
-window.getCurrentRoute =
-    getCurrentRoute;
-
-window.getPreviousRoute =
-    getPreviousRoute;
-
-window.getCurrentPage =
-    getCurrentPage;
-
-window.getCurrentEditor =
-    getCurrentEditor;
-
-window.isDashboard =
-    isDashboard;
-
-window.isCreator =
-    isCreator;
-
-window.initializeRouter =
-    initializeRouter;
-
-
-/* =========================================================
-   READY
-========================================================= */
-
-console.log(
-    "RV SPORTS: FC CUP 26 Router loaded."
-);
-
-console.log(
-    "[ROUTER] Version:",
-    ROUTER_VERSION
-);
+})();
