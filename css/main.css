@@ -1,0 +1,1989 @@
+```css
+/* =========================================================
+   RV SPORTS: FC CUP 26
+   MAIN UI STYLES
+   ========================================================= */
+
+
+/* =========================================================
+   01. RESET
+   ========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    min-height: 100%;
+    background: #080b12;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background:
+        radial-gradient(
+            circle at top,
+            #151c2d 0%,
+            #080b12 48%,
+            #05070c 100%
+        );
+
+    color: #f5f7fb;
+
+    overflow-x: hidden;
+}
+
+
+/* =========================================================
+   02. GLOBAL
+   ========================================================= */
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 3px;
+}
+
+input,
+select {
+    color: #ffffff;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.screen {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+}
+
+.screen::before {
+    content: "";
+    position: fixed;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,0.025) 0%,
+            transparent 35%
+        );
+
+    z-index: 0;
+}
+
+
+/* =========================================================
+   03. LOADING SCREEN
+   ========================================================= */
+
+.loading-screen {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #182238 0%,
+            #0b101c 45%,
+            #05070c 100%
+        );
+
+    overflow: hidden;
+}
+
+.loading-screen::after {
+    content: "";
+
+    position: absolute;
+
+    width: 500px;
+    height: 500px;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(255,255,255,0.035);
+
+    animation: loadingOrbit 8s linear infinite;
+}
+
+.loading-container {
+    width: min(420px, 100%);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+
+    position: relative;
+    z-index: 2;
+}
+
+
+/* Logo */
+
+.game-logo {
+    margin-bottom: 55px;
+
+    animation:
+        logoEntrance 1.2s ease-out,
+        logoFloat 3s ease-in-out 1.2s infinite;
+}
+
+.logo-main {
+    font-size: clamp(32px, 10vw, 54px);
+
+    font-weight: 950;
+
+    letter-spacing: -2px;
+
+    line-height: 0.95;
+}
+
+.logo-sub {
+    margin-top: 10px;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    letter-spacing: 6px;
+
+    opacity: 0.65;
+}
+
+
+/* Ball */
+
+.loading-animation {
+    width: 120px;
+    height: 120px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 48px;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,255,255,0.08),
+            transparent 70%
+        );
+}
+
+.loading-ball {
+    font-size: 58px;
+
+    filter:
+        drop-shadow(
+            0 15px 25px rgba(0,0,0,0.45)
+        );
+
+    animation:
+        ballSpin 1.4s linear infinite,
+        ballBounce 1.4s ease-in-out infinite;
+}
+
+
+/* Status */
+
+.loading-status {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 10px;
+}
+
+.loading-text {
+    font-size: 12px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1.5px;
+
+    opacity: 0.55;
+}
+
+.loading-percentage {
+    font-size: 13px;
+
+    font-weight: 800;
+
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* Loading bar */
+
+.loading-bar-container {
+    width: 100%;
+    height: 6px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,0.08);
+
+    overflow: hidden;
+
+    box-shadow:
+        inset 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.loading-bar {
+    height: 100%;
+
+    width: 1%;
+
+    border-radius: inherit;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffffff,
+            #9ba8ff,
+            #ffffff
+        );
+
+    background-size: 200% 100%;
+
+    animation: loadingShimmer 1.2s linear infinite;
+
+    box-shadow:
+        0 0 18px rgba(255,255,255,0.3);
+}
+
+.loading-message {
+    margin-top: 18px;
+
+    font-size: 11px;
+
+    opacity: 0.4;
+}
+
+
+/* =========================================================
+   04. START SCREEN
+   ========================================================= */
+
+.start-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+}
+
+.start-container {
+    width: min(430px, 100%);
+
+    position: relative;
+    z-index: 2;
+}
+
+.game-branding {
+    text-align: center;
+
+    margin-bottom: 30px;
+}
+
+.game-branding h1 {
+    font-size: 42px;
+
+    font-weight: 950;
+
+    letter-spacing: -2px;
+}
+
+.game-branding h2 {
+    margin-top: 5px;
+
+    font-size: 14px;
+
+    letter-spacing: 6px;
+
+    opacity: 0.6;
+}
+
+.game-branding p {
+    margin-top: 16px;
+
+    font-size: 13px;
+
+    opacity: 0.45;
+}
+
+
+/* Start card */
+
+.start-card {
+    padding: 28px;
+
+    border: 1px solid rgba(255,255,255,0.09);
+
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.075),
+            rgba(255,255,255,0.025)
+        );
+
+    backdrop-filter: blur(20px);
+
+    box-shadow:
+        0 25px 80px rgba(0,0,0,0.4);
+}
+
+.start-card-header {
+    margin-bottom: 28px;
+}
+
+.start-card-header h3 {
+    font-size: 22px;
+}
+
+.start-card-header p {
+    margin-top: 7px;
+
+    font-size: 12px;
+
+    opacity: 0.45;
+}
+
+
+/* =========================================================
+   05. FORM
+   ========================================================= */
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    opacity: 0.55;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+
+    height: 50px;
+
+    padding: 0 15px;
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    border-radius: 13px;
+
+    outline: none;
+
+    background:
+        rgba(255,255,255,0.045);
+
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        transform 0.2s;
+}
+
+.form-group input::placeholder {
+    color: rgba(255,255,255,0.3);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: rgba(255,255,255,0.3);
+
+    background:
+        rgba(255,255,255,0.07);
+
+    transform: translateY(-1px);
+}
+
+.form-error {
+    margin-top: 12px;
+
+    padding: 12px;
+
+    border-radius: 10px;
+
+    background: rgba(255,80,80,0.1);
+
+    color: #ff9a9a;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   06. BUTTONS
+   ========================================================= */
+
+.primary-button,
+.secondary-button {
+    width: 100%;
+
+    min-height: 52px;
+
+    border-radius: 14px;
+
+    font-weight: 850;
+
+    transition:
+        transform 0.18s ease,
+        opacity 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.primary-button {
+    color: #080b12;
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #dfe4ff
+        );
+
+    box-shadow:
+        0 10px 30px rgba(255,255,255,0.08);
+}
+
+.secondary-button {
+    color: #ffffff;
+
+    border: 1px solid rgba(255,255,255,0.1);
+
+    background:
+        rgba(255,255,255,0.055);
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+    transform: translateY(-2px);
+}
+
+.primary-button:active,
+.secondary-button:active {
+    transform: translateY(1px);
+}
+
+
+/* =========================================================
+   07. CHARACTER CREATION
+   ========================================================= */
+
+.character-screen {
+    padding: 25px 18px 60px;
+}
+
+.creation-container {
+    width: min(1000px, 100%);
+
+    margin: 0 auto;
+
+    position: relative;
+    z-index: 2;
+}
+
+.screen-header {
+    margin-bottom: 25px;
+}
+
+.eyebrow {
+    display: inline-block;
+
+    margin-bottom: 7px;
+
+    font-size: 9px;
+
+    font-weight: 900;
+
+    letter-spacing: 2px;
+
+    opacity: 0.45;
+}
+
+.screen-header h2 {
+    font-size: clamp(27px, 7vw, 40px);
+
+    letter-spacing: -1px;
+}
+
+.screen-header p {
+    margin-top: 8px;
+
+    max-width: 500px;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+
+    opacity: 0.45;
+}
+
+
+/* =========================================================
+   08. PLAYER CARD
+   ========================================================= */
+
+.player-card-section {
+    display: flex;
+    justify-content: center;
+
+    margin-bottom: 30px;
+}
+
+.player-card {
+    width: 300px;
+    min-height: 430px;
+
+    position: relative;
+
+    overflow: hidden;
+
+    border: 3px solid rgba(255,255,255,0.15);
+
+    border-radius: 24px;
+
+    padding: 18px;
+
+    background:
+        radial-gradient(
+            circle at 50% 30%,
+            rgba(255,255,255,0.12),
+            transparent 40%
+        ),
+        linear-gradient(
+            150deg,
+            #182238,
+            #0c111d
+        );
+
+    box-shadow:
+        0 30px 80px rgba(0,0,0,0.45);
+
+    transition:
+        border-color 0.4s,
+        box-shadow 0.4s,
+        transform 0.4s;
+}
+
+.player-card::before {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,255,255,0.08),
+            transparent 35%,
+            transparent 65%,
+            rgba(255,255,255,0.025)
+        );
+}
+
+.player-card:hover {
+    transform: translateY(-4px);
+}
+
+
+/* Card top */
+
+.player-card-top {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.player-rating {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-ovr {
+    font-size: 48px;
+
+    line-height: 0.9;
+
+    font-weight: 950;
+
+    letter-spacing: -3px;
+}
+
+.card-position {
+    margin-top: 5px;
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+    opacity: 0.6;
+}
+
+.card-country {
+    font-size: 11px;
+
+    font-weight: 800;
+
+    opacity: 0.65;
+}
+
+
+/* Card image */
+
+.player-card-image {
+    height: 190px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+
+    margin-top: 5px;
+}
+
+.player-placeholder {
+    width: 125px;
+    height: 150px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 65px 65px 35px 35px;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.09),
+            rgba(255,255,255,0.02)
+        );
+
+    color: rgba(255,255,255,0.25);
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 2px;
+}
+
+.player-card-image img {
+    width: 150px;
+    height: 170px;
+
+    object-fit: contain;
+
+    position: relative;
+    z-index: 2;
+}
+
+
+/* Card name */
+
+.player-card-name {
+    position: relative;
+    z-index: 2;
+
+    text-align: center;
+
+    margin-top: 2px;
+}
+
+.player-card-name span {
+    font-size: 22px;
+
+    font-weight: 950;
+
+    letter-spacing: -0.5px;
+
+    text-transform: uppercase;
+}
+
+.player-card-position {
+    text-align: center;
+
+    margin-top: 3px;
+}
+
+.player-card-position span {
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    opacity: 0.45;
+}
+
+
+/* Card stats */
+
+.player-card-stats {
+    position: relative;
+    z-index: 2;
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 8px;
+
+    margin-top: 17px;
+}
+
+.card-stat {
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 15px;
+
+    font-weight: 950;
+}
+
+.stat-label {
+    margin-top: 2px;
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    opacity: 0.4;
+}
+
+
+/* Card footer */
+
+.player-card-footer {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    justify-content: space-between;
+
+    margin-top: 17px;
+
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    opacity: 0.4;
+}
+
+
+/* =========================================================
+   09. OVR CARD TIERS
+   ========================================================= */
+
+/*
+   JS nanti cukup menambahkan salah satu class:
+
+   ovr-bronze
+   ovr-silver
+   ovr-gold
+   ovr-elite
+   ovr-worldclass
+   ovr-icon
+*/
+
+.player-card.ovr-unrated {
+    border-color: rgba(255,255,255,0.15);
+}
+
+.player-card.ovr-bronze {
+    border-color: #a66a3f;
+
+    box-shadow:
+        0 0 35px rgba(166,106,63,0.16),
+        0 30px 80px rgba(0,0,0,0.45);
+}
+
+.player-card.ovr-silver {
+    border-color: #aeb8c7;
+
+    box-shadow:
+        0 0 35px rgba(174,184,199,0.18),
+        0 30px 80px rgba(0,0,0,0.45);
+}
+
+.player-card.ovr-gold {
+    border-color: #d7b65a;
+
+    box-shadow:
+        0 0 40px rgba(215,182,90,0.2),
+        0 30px 80px rgba(0,0,0,0.45);
+}
+
+.player-card.ovr-elite {
+    border-color: #a98cff;
+
+    box-shadow:
+        0 0 45px rgba(169,140,255,0.25),
+        0 30px 80px rgba(0,0,0,0.45);
+}
+
+.player-card.ovr-worldclass {
+    border-color: #76d9ff;
+
+    box-shadow:
+        0 0 50px rgba(118,217,255,0.3),
+        0 30px 80px rgba(0,0,0,0.45);
+}
+
+.player-card.ovr-icon {
+    border-color: #f7e7a5;
+
+    box-shadow:
+        0 0 60px rgba(247,231,165,0.35),
+        0 30px 80px rgba(0,0,0,0.45);
+}
+
+
+/* =========================================================
+   10. CREATION FORM
+   ========================================================= */
+
+.creation-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+.form-section {
+    padding: 22px;
+
+    border: 1px solid rgba(255,255,255,0.07);
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,0.025);
+}
+
+.form-section-title {
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+
+    margin-bottom: 20px;
+}
+
+.form-section-title > span {
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    font-size: 10px;
+
+    font-weight: 900;
+}
+
+.form-section-title h3 {
+    font-size: 16px;
+}
+
+
+/* =========================================================
+   11. POSITION GRID
+   ========================================================= */
+
+.position-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+}
+
+.position-button {
+    min-height: 66px;
+
+    padding: 11px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+    justify-content: center;
+
+    border: 1px solid rgba(255,255,255,0.06);
+
+    border-radius: 13px;
+
+    background:
+        rgba(255,255,255,0.025);
+
+    color: #ffffff;
+
+    text-align: left;
+
+    transition:
+        background 0.2s,
+        border-color 0.2s,
+        transform 0.2s;
+}
+
+.position-button:hover {
+    background:
+        rgba(255,255,255,0.055);
+
+    transform: translateY(-1px);
+}
+
+.position-button.active {
+    border-color: rgba(255,255,255,0.5);
+
+    background:
+        rgba(255,255,255,0.1);
+
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.position-code {
+    font-size: 17px;
+
+    font-weight: 950;
+}
+
+.position-name {
+    margin-top: 3px;
+
+    font-size: 9px;
+
+    opacity: 0.4;
+}
+
+
+/* =========================================================
+   12. GACHA
+   ========================================================= */
+
+.gacha-container {
+    text-align: center;
+}
+
+.gacha-description {
+    max-width: 450px;
+
+    margin: 0 auto 20px;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    opacity: 0.4;
+}
+
+.gacha-result {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 9px;
+
+    margin-bottom: 16px;
+}
+
+.gacha-stat {
+    min-height: 75px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255,255,255,0.06);
+
+    border-radius: 13px;
+
+    background:
+        rgba(255,255,255,0.025);
+}
+
+.gacha-stat span {
+    font-size: 8px;
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    opacity: 0.4;
+}
+
+.gacha-stat strong {
+    margin-top: 4px;
+
+    font-size: 25px;
+
+    font-weight: 950;
+}
+
+.gacha-ovr {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+.gacha-ovr span {
+    font-size: 11px;
+
+    opacity: 0.45;
+}
+
+.gacha-ovr strong {
+    font-size: 30px;
+
+    font-weight: 950;
+}
+
+
+/* =========================================================
+   13. CREATION ACTIONS
+   ========================================================= */
+
+.creation-actions {
+    padding-top: 3px;
+}
+
+
+/* =========================================================
+   14. MAIN DASHBOARD
+   ========================================================= */
+
+.dashboard-screen {
+    padding-bottom: 85px;
+}
+
+.main-header {
+    min-height: 70px;
+
+    padding:
+        12px
+        17px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 20;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.05);
+
+    background:
+        rgba(8,11,18,0.82);
+
+    backdrop-filter: blur(20px);
+}
+
+.header-player {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+}
+
+.header-avatar {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255,255,255,0.08);
+
+    font-size: 11px;
+
+    font-weight: 900;
+}
+
+.header-player-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-player-info strong {
+    font-size: 12px;
+}
+
+.header-player-info span {
+    margin-top: 2px;
+
+    font-size: 9px;
+
+    opacity: 0.4;
+}
+
+.header-resources {
+    display: flex;
+
+    gap: 10px;
+}
+
+.resource {
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-end;
+}
+
+.resource span {
+    font-size: 7px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    opacity: 0.4;
+}
+
+.resource strong {
+    margin-top: 2px;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   15. DASHBOARD CONTENT
+   ========================================================= */
+
+.dashboard-content {
+    width: min(850px, 100%);
+
+    margin: 0 auto;
+
+    padding: 25px 17px;
+}
+
+.dashboard-player-card {
+    display: flex;
+
+    justify-content: center;
+
+    margin-bottom: 25px;
+}
+
+
+/* =========================================================
+   16. DASHBOARD MENU
+   ========================================================= */
+
+.dashboard-menu {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+}
+
+.dashboard-menu-item {
+    min-height: 75px;
+
+    padding: 15px;
+
+    display: flex;
+    align-items: flex-end;
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.05),
+            rgba(255,255,255,0.02)
+        );
+
+    color: #ffffff;
+
+    text-align: left;
+
+    transition:
+        transform 0.2s,
+        background 0.2s;
+}
+
+.dashboard-menu-item:hover {
+    transform: translateY(-2px);
+
+    background:
+        rgba(255,255,255,0.075);
+}
+
+.dashboard-menu-item span {
+    font-size: 13px;
+
+    font-weight: 850;
+}
+
+
+/* =========================================================
+   17. CREATOR ACCESS
+   ========================================================= */
+
+.creator-access {
+    margin-top: 20px;
+}
+
+.creator-button {
+    width: 100%;
+
+    min-height: 50px;
+
+    border-radius: 13px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2c2345,
+            #181329
+        );
+
+    border:
+        1px solid rgba(169,140,255,0.25);
+
+    color: #d8cbff;
+
+    font-size: 12px;
+
+    font-weight: 900;
+
+    letter-spacing: 0.5px;
+}
+
+
+/* =========================================================
+   18. BOTTOM NAV
+   ========================================================= */
+
+.bottom-navigation {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 68px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+
+    z-index: 50;
+
+    border-top:
+        1px solid rgba(255,255,255,0.06);
+
+    background:
+        rgba(7,10,16,0.9);
+
+    backdrop-filter: blur(22px);
+}
+
+.bottom-nav-item {
+    height: 100%;
+
+    flex: 1;
+
+    background: transparent;
+
+    color: rgba(255,255,255,0.35);
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    transition:
+        color 0.2s,
+        transform 0.2s;
+}
+
+.bottom-nav-item.active {
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   19. CREATOR SCREEN
+   ========================================================= */
+
+.creator-screen {
+    padding:
+        25px
+        17px
+        60px;
+}
+
+.creator-container {
+    width: min(1000px, 100%);
+
+    margin: 0 auto;
+
+    position: relative;
+    z-index: 2;
+}
+
+.creator-header {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-bottom: 25px;
+}
+
+.creator-header h2 {
+    font-size: 30px;
+
+    letter-spacing: -1px;
+}
+
+.creator-header p {
+    margin-top: 7px;
+
+    font-size: 11px;
+
+    opacity: 0.4;
+}
+
+.icon-button {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    color: #ffffff;
+
+    font-size: 23px;
+}
+
+
+/* Creator menu */
+
+.creator-menu {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+}
+
+.creator-menu-item {
+    min-height: 105px;
+
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+    justify-content: flex-end;
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(169,140,255,0.08),
+            rgba(255,255,255,0.025)
+        );
+
+    color: #ffffff;
+
+    text-align: left;
+
+    transition:
+        transform 0.2s,
+        border-color 0.2s;
+}
+
+.creator-menu-item:hover {
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(169,140,255,0.25);
+}
+
+.creator-menu-item strong {
+    font-size: 12px;
+
+    font-weight: 900;
+}
+
+.creator-menu-item span {
+    margin-top: 5px;
+
+    font-size: 9px;
+
+    line-height: 1.5;
+
+    opacity: 0.4;
+}
+
+
+/* Editor */
+
+.creator-editor {
+    min-height: 220px;
+
+    padding: 22px;
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,0.025);
+}
+
+.empty-editor {
+    min-height: 175px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+}
+
+.empty-editor h3 {
+    font-size: 16px;
+}
+
+.empty-editor p {
+    margin-top: 7px;
+
+    font-size: 11px;
+
+    opacity: 0.4;
+}
+
+
+/* =========================================================
+   20. CREATOR LOG
+   ========================================================= */
+
+.creator-log-section {
+    margin-top: 20px;
+
+    padding: 20px;
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,0.02);
+}
+
+.section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+
+    margin-bottom: 15px;
+}
+
+.section-heading h3 {
+    font-size: 14px;
+}
+
+.section-heading span {
+    font-size: 9px;
+
+    opacity: 0.35;
+}
+
+.creator-log {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.empty-log {
+    padding: 20px;
+
+    text-align: center;
+
+    font-size: 10px;
+
+    opacity: 0.3;
+}
+
+
+/* =========================================================
+   21. MODAL
+   ========================================================= */
+
+.modal {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+}
+
+.modal-overlay {
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        rgba(0,0,0,0.7);
+
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    width: min(500px, 100%);
+
+    max-height: 90vh;
+
+    position: relative;
+    z-index: 2;
+
+    overflow-y: auto;
+
+    padding: 25px;
+
+    border:
+        1px solid rgba(255,255,255,0.1);
+
+    border-radius: 22px;
+
+    background:
+        #101520;
+
+    box-shadow:
+        0 40px 100px rgba(0,0,0,0.6);
+}
+
+.modal-close {
+    width: 34px;
+    height: 34px;
+
+    position: absolute;
+
+    top: 13px;
+    right: 13px;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    color: #ffffff;
+
+    font-size: 20px;
+}
+
+.modal-body {
+    padding-top: 8px;
+}
+
+
+/* =========================================================
+   22. TOAST
+   ========================================================= */
+
+.toast-container {
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 85px;
+
+    transform: translateX(-50%);
+
+    width: min(360px, calc(100% - 30px));
+
+    z-index: 200;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    pointer-events: none;
+}
+
+.toast {
+    padding: 13px 15px;
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    border-radius: 13px;
+
+    background:
+        rgba(17,22,32,0.95);
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,0.4);
+
+    font-size: 11px;
+
+    animation:
+        toastIn 0.25s ease-out;
+}
+
+
+/* =========================================================
+   23. DESKTOP
+   ========================================================= */
+
+@media (min-width: 700px) {
+
+    .character-screen {
+        padding-top: 40px;
+    }
+
+    .creation-container {
+        display: grid;
+
+        grid-template-columns:
+            340px
+            minmax(0, 1fr);
+
+        align-items: start;
+
+        column-gap: 35px;
+    }
+
+    .screen-header {
+        grid-column: 1 / -1;
+    }
+
+    .player-card-section {
+        position: sticky;
+
+        top: 100px;
+    }
+
+    .creation-form {
+        min-width: 0;
+    }
+
+    .position-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .dashboard-menu {
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+    }
+
+    .creator-menu {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================================
+   24. SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    .start-card {
+        padding: 22px;
+    }
+
+    .player-card {
+        width: 275px;
+        min-height: 405px;
+    }
+
+    .player-card-image {
+        height: 175px;
+    }
+
+    .dashboard-menu {
+        gap: 8px;
+    }
+
+    .dashboard-menu-item {
+        min-height: 68px;
+    }
+
+    .creator-menu {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* =========================================================
+   25. ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+
+        scroll-behavior: auto !important;
+
+        transition-duration: 0.01ms !important;
+    }
+
+}
+
+
+/* =========================================================
+   26. ANIMATIONS
+   ========================================================= */
+
+@keyframes logoEntrance {
+
+    from {
+        opacity: 0;
+        transform:
+            translateY(20px)
+            scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+
+
+@keyframes logoFloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+}
+
+
+@keyframes ballSpin {
+
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+
+}
+
+
+@keyframes ballBounce {
+
+    0%,
+    100% {
+        margin-top: 0;
+    }
+
+    50% {
+        margin-top: -12px;
+    }
+
+}
+
+
+@keyframes loadingShimmer {
+
+    from {
+        background-position: 200% 0;
+    }
+
+    to {
+        background-position: -200% 0;
+    }
+
+}
+
+
+@keyframes loadingOrbit {
+
+    from {
+        transform:
+            rotate(0deg)
+            scale(1);
+    }
+
+    50% {
+        transform:
+            rotate(180deg)
+            scale(1.08);
+    }
+
+    to {
+        transform:
+            rotate(360deg)
+            scale(1);
+    }
+
+}
+
+
+@keyframes toastIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(10px)
+            scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+```
