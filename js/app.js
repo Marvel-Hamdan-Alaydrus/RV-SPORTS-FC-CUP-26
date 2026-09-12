@@ -18,17 +18,17 @@
     );
 
     const progressText =
-      document.getElementById("loadingProgress");
+      document.getElementById("loading-percentage");
 
     const loadingBar =
-      document.getElementById("loadingBar");
+      document.getElementById("loading-bar");
 
-    const loadingStatus =
-      document.getElementById("loadingStatus");
+    const loadingText =
+      document.querySelector(".loading-text");
 
     if (progressText) {
       progressText.textContent =
-        `${Math.round(bootProgress)}%`;
+        Math.round(bootProgress);
     }
 
     if (loadingBar) {
@@ -36,9 +36,13 @@
         `${bootProgress}%`;
     }
 
-    if (loadingStatus && status) {
-      loadingStatus.textContent = status;
+    if (loadingText && status) {
+      loadingText.textContent = status;
     }
+
+    console.log(
+      `[APP] ${Math.round(bootProgress)}% - ${status || ""}`
+    );
   }
 
   function wait(ms) {
@@ -57,26 +61,31 @@
 
   function hideLoadingScreen() {
     const loadingScreen =
-      document.getElementById("loadingScreen");
+      document.getElementById("loading-screen");
 
     if (!loadingScreen) {
       console.warn(
-        "[APP] loadingScreen tidak ditemukan."
+        "[APP] loading-screen tidak ditemukan."
       );
       return;
     }
 
-    loadingScreen.classList.remove("active");
+    loadingScreen.classList.add("hidden");
 
     setTimeout(() => {
       loadingScreen.style.display = "none";
-    }, 400);
+    }, 500);
   }
 
   async function bootGame() {
     console.log("[APP] Boot started.");
 
     try {
+
+      /* =========================
+         1. INITIAL
+         ========================= */
+
       updateLoading(
         5,
         "Menyiapkan sistem..."
@@ -85,7 +94,7 @@
       await wait(100);
 
       /* =========================
-         CORE
+         2. CORE
          ========================= */
 
       checkSystem(
@@ -108,7 +117,7 @@
       await wait(100);
 
       /* =========================
-         PLAYER
+         3. PLAYER
          ========================= */
 
       updateLoading(
@@ -133,7 +142,7 @@
       await wait(100);
 
       /* =========================
-         CAREER
+         4. CAREER
          ========================= */
 
       updateLoading(
@@ -158,7 +167,7 @@
       await wait(100);
 
       /* =========================
-         WORLD
+         5. WORLD
          ========================= */
 
       updateLoading(
@@ -204,7 +213,7 @@
       await wait(100);
 
       /* =========================
-         ROUTER
+         6. ROUTER
          ========================= */
 
       updateLoading(
@@ -212,18 +221,17 @@
         "Menyiapkan dunia sepak bola..."
       );
 
-      checkSystem(
-        "Router",
+      if (
         typeof initializeRouter ===
-          "function"
-      );
-
-      initializeRouter();
+        "function"
+      ) {
+        initializeRouter();
+      }
 
       await wait(150);
 
       /* =========================
-         FINISH
+         7. FINISH
          ========================= */
 
       updateLoading(
@@ -247,6 +255,7 @@
       );
 
     } catch (error) {
+
       console.error(
         "[APP] Boot failed:",
         error
@@ -257,33 +266,33 @@
   }
 
   function showBootError(error) {
-    const loadingStatus =
-      document.getElementById(
-        "loadingStatus"
-      );
+
+    const loadingText =
+      document.querySelector(".loading-text");
 
     const progressText =
       document.getElementById(
-        "loadingProgress"
+        "loading-percentage"
       );
 
-    if (loadingStatus) {
-      loadingStatus.textContent =
+    if (loadingText) {
+      loadingText.textContent =
         "Gagal memuat game.";
     }
 
     if (progressText) {
       progressText.textContent =
-        "ERROR";
+        "!";
     }
 
     console.error(
-      "[RV SPORTS] Error:",
+      "[RV SPORTS] Boot Error:",
       error?.message || error
     );
   }
 
   function startBoot() {
+
     console.log(
       "[APP] Starting boot..."
     );
