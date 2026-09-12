@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0b0f19"
+    >
+
+    <meta
+        name="description"
+        content="RV SPORTS: FC CUP 26"
+    >
+
+    <title>RV SPORTS: FC CUP 26</title>
+
+    <!-- =========================
+         MAIN STYLES
+    ========================== -->
+
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+
+    <!-- =====================================================
+         APP ROOT
+    ====================================================== -->
+
+    <div id="app">
+
+        <!-- =================================================
+             LOADING SCREEN
+        ================================================== -->
+
+        <section
+            id="loading-screen"
+            class="screen loading-screen"
+        >
+
+            <div class="loading-container">
+
+                <div class="game-logo">
+                    <div class="logo-main">
+                        RV SPORTS
+                    </div>
+
+                    <div class="logo-sub">
+                        FC CUP 26
+                    </div>
+                </div>
+
+                <div class="loading-animation">
+
+                    <div class="loading-ball">
+                        ⚽
+                    </div>
+
+                </div>
+
+                <div class="loading-status">
+
+                    <div class="loading-text">
+                        Loading...
+                    </div>
+
+                    <div class="loading-percentage">
+                        <span id="loading-percentage">1</span>%
+                    </div>
+
+                </div>
+
+                <div class="loading-bar-container">
+
+                    <div
+                        id="loading-bar"
+                        class="loading-bar"
+                        style="width: 1%;"
+                    ></div>
+
+                </div>
+
+                <div
+                    id="loading-message"
+                    class="loading-message"
+                >
+                    Preparing your football world...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             START / LOGIN SCREEN
+        ================================================== -->
+
+        <section
+            id="start-screen"
+            class="screen start-screen hidden"
+        >
+
+            <div class="start-container">
+
+                <div class="game-branding">
+
+                    <h1>
+                        RV SPORTS
+                    </h1>
+
+                    <h2>
+                        FC CUP 26
+                    </h2>
+
+                    <p>
+                        Your career. Your legacy.
+                    </p>
+
+                </div>
+
+
+                <div class="start-card">
+
+                    <div class="start-card-header">
+                        <h3>
+                            Start Your Career
+                        </h3>
+
+                        <p>
+                            Enter your information to begin.
+                        </p>
+                    </div>
+
+
+                    <!-- EMAIL -->
+
+                    <div class="form-group">
+
+                        <label for="player-email">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="player-email"
+                            name="player-email"
+                            placeholder="Enter your email"
+                            autocomplete="email"
+                        >
+
+                    </div>
+
+
+                    <!-- NAME -->
+
+                    <div class="form-group">
+
+                        <label for="player-account-name">
+                            Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="player-account-name"
+                            name="player-account-name"
+                            placeholder="Enter your name"
+                            maxlength="30"
+                        >
+
+                    </div>
+
+
+                    <button
+                        id="start-game-button"
+                        class="primary-button"
+                        type="button"
+                    >
+                        Start Game
+                    </button>
+
+
+                    <div
+                        id="start-error"
+                        class="form-error hidden"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CHARACTER CREATION SCREEN
+        ================================================== -->
+
+        <section
+            id="character-creation-screen"
+            class="screen character-screen hidden"
+        >
+
+            <div class="creation-container">
+
+
+                <!-- =========================================
+                     HEADER
+                ========================================== -->
+
+                <header class="screen-header">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            PLAYER CREATION
+                        </span>
+
+                        <h2>
+                            Create Your Player
+                        </h2>
+
+                        <p>
+                            Build the footballer who will write your story.
+                        </p>
+
+                    </div>
+
+                </header>
+
+
+                <!-- =========================================
+                     PLAYER CARD PREVIEW
+                ========================================== -->
+
+                <div class="player-card-section">
+
+                    <div
+                        id="player-card"
+                        class="player-card ovr-unrated"
+                    >
+
+                        <!-- CARD HEADER -->
+
+                        <div class="player-card-top">
+
+                            <div class="player-rating">
+
+                                <span
+                                    id="card-ovr"
+                                    class="card-ovr"
+                                >
+                                    --
+                                </span>
+
+                                <span
+                                    id="card-position"
+                                    class="card-position"
+                                >
+                                    --
+                                </span>
+
+                            </div>
+
+                            <div class="player-nationality">
+
+                                <span
+                                    id="card-country"
+                                    class="card-country"
+                                >
+                                    --
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PLAYER IMAGE -->
+
+                        <div class="player-card-image">
+
+                            <div
+                                id="card-player-placeholder"
+                                class="player-placeholder"
+                            >
+                                PLAYER
+                            </div>
+
+                            <img
+                                id="card-player-photo"
+                                class="hidden"
+                                src=""
+                                alt="Player"
+                            >
+
+                        </div>
+
+
+                        <!-- PLAYER NAME -->
+
+                        <div class="player-card-name">
+
+                            <span id="card-name">
+                                YOUR NAME
+                            </span>
+
+                        </div>
+
+
+                        <!-- PLAYER POSITION -->
+
+                        <div class="player-card-position">
+
+                            <span id="card-position-name">
+                                POSITION
+                            </span>
+
+                        </div>
+
+
+                        <!-- STATS -->
+
+                        <div class="player-card-stats">
+
+                            <div class="card-stat">
+
+                                <span class="stat-value" id="card-pac">
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    PAC
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span class="stat-value" id="card-sho">
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    SHO
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span class="stat-value" id="card-pas">
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    PAS
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span class="stat-value" id="card-dri">
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    DRI
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span class="stat-value" id="card-def">
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    DEF
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span class="stat-value" id="card-phy">
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    PHY
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- FOOTER -->
+
+                        <div class="player-card-footer">
+
+                            <span id="card-shirt-name">
+                                --
+                            </span>
+
+                            <span>
+                                FC CUP 26
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     CHARACTER FORM
+                ========================================== -->
+
+                <div class="creation-form">
+
+
+                    <!-- BASIC INFORMATION -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+                            <span>
+                                01
+                            </span>
+
+                            <h3>
+                                Player Information
+                            </h3>
+                        </div>
+
+
+                        <!-- PLAYER NAME -->
+
+                        <div class="form-group">
+
+                            <label for="character-name">
+                                Player Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="character-name"
+                                placeholder="Your footballer name"
+                                maxlength="30"
+                            >
+
+                        </div>
+
+
+                        <!-- DATE OF BIRTH -->
+
+                        <div class="form-group">
+
+                            <label for="character-birthdate">
+                                Date of Birth
+                            </label>
+
+                            <input
+                                type="date"
+                                id="character-birthdate"
+                            >
+
+                        </div>
+
+
+                        <!-- SHIRT NAME -->
+
+                        <div class="form-group">
+
+                            <label for="character-shirt-name">
+                                Name on Shirt
+                            </label>
+
+                            <input
+                                type="text"
+                                id="character-shirt-name"
+                                placeholder="e.g. RAKA"
+                                maxlength="15"
+                            >
+
+                        </div>
+
+
+                        <!-- COUNTRY -->
+
+                        <div class="form-group">
+
+                            <label for="character-country">
+                                Country
+                            </label>
+
+                            <select id="character-country">
+
+                                <option value="">
+                                    Select Country
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                         POSITION
+                    ====================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                02
+                            </span>
+
+                            <h3>
+                                Position
+                            </h3>
+
+                        </div>
+
+
+                        <div class="position-grid">
+
+
+                            <!-- GK -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="GK"
+                            >
+                                <span class="position-code">
+                                    GK
+                                </span>
+
+                                <span class="position-name">
+                                    Goalkeeper
+                                </span>
+                            </button>
+
+
+                            <!-- LB -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="LB"
+                            >
+                                <span class="position-code">
+                                    LB
+                                </span>
+
+                                <span class="position-name">
+                                    Left Back
+                                </span>
+                            </button>
+
+
+                            <!-- CB -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="CB"
+                            >
+                                <span class="position-code">
+                                    CB
+                                </span>
+
+                                <span class="position-name">
+                                    Centre Back
+                                </span>
+                            </button>
+
+
+                            <!-- RB -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="RB"
+                            >
+                                <span class="position-code">
+                                    RB
+                                </span>
+
+                                <span class="position-name">
+                                    Right Back
+                                </span>
+                            </button>
+
+
+                            <!-- LWB -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="LWB"
+                            >
+                                <span class="position-code">
+                                    LWB
+                                </span>
+
+                                <span class="position-name">
+                                    Left Wing Back
+                                </span>
+                            </button>
+
+
+                            <!-- RWB -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="RWB"
+                            >
+                                <span class="position-code">
+                                    RWB
+                                </span>
+
+                                <span class="position-name">
+                                    Right Wing Back
+                                </span>
+                            </button>
+
+
+                            <!-- CDM -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="CDM"
+                            >
+                                <span class="position-code">
+                                    CDM
+                                </span>
+
+                                <span class="position-name">
+                                    Defensive Midfielder
+                                </span>
+                            </button>
+
+
+                            <!-- CM -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="CM"
+                            >
+                                <span class="position-code">
+                                    CM
+                                </span>
+
+                                <span class="position-name">
+                                    Central Midfielder
+                                </span>
+                            </button>
+
+
+                            <!-- CAM -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="CAM"
+                            >
+                                <span class="position-code">
+                                    CAM
+                                </span>
+
+                                <span class="position-name">
+                                    Attacking Midfielder
+                                </span>
+                            </button>
+
+
+                            <!-- LW -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="LW"
+                            >
+                                <span class="position-code">
+                                    LW
+                                </span>
+
+                                <span class="position-name">
+                                    Left Winger
+                                </span>
+                            </button>
+
+
+                            <!-- RW -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="RW"
+                            >
+                                <span class="position-code">
+                                    RW
+                                </span>
+
+                                <span class="position-name">
+                                    Right Winger
+                                </span>
+                            </button>
+
+
+                            <!-- ST -->
+
+                            <button
+                                type="button"
+                                class="position-button"
+                                data-position="ST"
+                            >
+                                <span class="position-code">
+                                    ST
+                                </span>
+
+                                <span class="position-name">
+                                    Striker
+                                </span>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                         GACHA STATS
+                    ====================================== -->
+
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <span>
+                                03
+                            </span>
+
+                            <h3>
+                                Player Stats
+                            </h3>
+
+                        </div>
+
+
+                        <div class="gacha-container">
+
+                            <p class="gacha-description">
+
+                                Your starting attributes will be generated
+                                through the player stat gacha.
+
+                            </p>
+
+
+                            <div class="gacha-result">
+
+                                <div class="gacha-stat">
+
+                                    <span>
+                                        PAC
+                                    </span>
+
+                                    <strong id="gacha-pac">
+                                        --
+                                    </strong>
+
+                                </div>
+
+                                <div class="gacha-stat">
+
+                                    <span>
+                                        SHO
+                                    </span>
+
+                                    <strong id="gacha-sho">
+                                        --
+                                    </strong>
+
+                                </div>
+
+                                <div class="gacha-stat">
+
+                                    <span>
+                                        PAS
+                                    </span>
+
+                                    <strong id="gacha-pas">
+                                        --
+                                    </strong>
+
+                                </div>
+
+                                <div class="gacha-stat">
+
+                                    <span>
+                                        DRI
+                                    </span>
+
+                                    <strong id="gacha-dri">
+                                        --
+                                    </strong>
+
+                                </div>
+
+                                <div class="gacha-stat">
+
+                                    <span>
+                                        DEF
+                                    </span>
+
+                                    <strong id="gacha-def">
+                                        --
+                                    </strong>
+
+                                </div>
+
+                                <div class="gacha-stat">
+
+                                    <span>
+                                        PHY
+                                    </span>
+
+                                    <strong id="gacha-phy">
+                                        --
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="gacha-ovr">
+
+                                <span>
+                                    Starting OVR
+                                </span>
+
+                                <strong id="gacha-ovr">
+                                    --
+                                </strong>
+
+                            </div>
+
+
+                            <button
+                                id="gacha-button"
+                                class="secondary-button"
+                                type="button"
+                            >
+                                Roll Stats
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =====================================
+                         CONFIRM CHARACTER
+                    ====================================== -->
+
+                    <div class="creation-actions">
+
+                        <button
+                            id="create-player-button"
+                            class="primary-button"
+                            type="button"
+                        >
+                            Create Player
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             MAIN DASHBOARD
+        ================================================== -->
+
+        <section
+            id="main-dashboard"
+            class="screen dashboard-screen hidden"
+        >
+
+            <!-- =============================================
+                 TOP NAVIGATION
+            ============================================== -->
+
+            <header class="main-header">
+
+                <div class="header-player">
+
+                    <div
+                        id="header-avatar"
+                        class="header-avatar"
+                    >
+                        --
+                    </div>
+
+                    <div class="header-player-info">
+
+                        <strong id="header-player-name">
+                            Player
+                        </strong>
+
+                        <span id="header-player-club">
+                            No Club
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="header-resources">
+
+                    <div class="resource">
+
+                        <span>
+                            $
+                        </span>
+
+                        <strong id="header-money">
+                            0
+                        </strong>
+
+                    </div>
+
+                    <div class="resource">
+
+                        <span>
+                            Followers
+                        </span>
+
+                        <strong id="header-followers">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- =============================================
+                 DASHBOARD CONTENT
+            ============================================== -->
+
+            <main class="dashboard-content">
+
+
+                <!-- PLAYER CARD -->
+
+                <div class="dashboard-player-card">
+
+                    <div
+                        id="dashboard-card"
+                        class="player-card"
+                    >
+
+                        <div class="player-card-top">
+
+                            <div class="player-rating">
+
+                                <span
+                                    id="dashboard-ovr"
+                                    class="card-ovr"
+                                >
+                                    --
+                                </span>
+
+                                <span
+                                    id="dashboard-position"
+                                    class="card-position"
+                                >
+                                    --
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="player-card-image">
+
+                            <div
+                                id="dashboard-player-placeholder"
+                                class="player-placeholder"
+                            >
+                                PLAYER
+                            </div>
+
+                            <img
+                                id="dashboard-player-photo"
+                                class="hidden"
+                                src=""
+                                alt="Player"
+                            >
+
+                        </div>
+
+
+                        <div class="player-card-name">
+
+                            <span id="dashboard-player-name">
+                                PLAYER
+                            </span>
+
+                        </div>
+
+
+                        <div class="player-card-stats">
+
+                            <div class="card-stat">
+
+                                <span
+                                    id="dashboard-pac"
+                                    class="stat-value"
+                                >
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    PAC
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span
+                                    id="dashboard-sho"
+                                    class="stat-value"
+                                >
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    SHO
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span
+                                    id="dashboard-pas"
+                                    class="stat-value"
+                                >
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    PAS
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span
+                                    id="dashboard-dri"
+                                    class="stat-value"
+                                >
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    DRI
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span
+                                    id="dashboard-def"
+                                    class="stat-value"
+                                >
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    DEF
+                                </span>
+
+                            </div>
+
+                            <div class="card-stat">
+
+                                <span
+                                    id="dashboard-phy"
+                                    class="stat-value"
+                                >
+                                    --
+                                </span>
+
+                                <span class="stat-label">
+                                    PHY
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     DASHBOARD MENU
+                ========================================== -->
+
+                <div class="dashboard-menu">
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="career"
+                    >
+                        <span>
+                            Career
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="club"
+                    >
+                        <span>
+                            Club
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="transfer"
+                    >
+                        <span>
+                            Transfer
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="training"
+                    >
+                        <span>
+                            Training
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="social"
+                    >
+                        <span>
+                            Social
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="trophies"
+                    >
+                        <span>
+                            Trophies
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="profile"
+                    >
+                        <span>
+                            Profile
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="dashboard-menu-item"
+                        data-page="settings"
+                    >
+                        <span>
+                            Settings
+                        </span>
+                    </button>
+
+                </div>
+
+
+                <!-- =========================================
+                     CREATOR / ADMIN
+                ========================================== -->
+
+                <div
+                    id="creator-access"
+                    class="creator-access hidden"
+                >
+
+                    <button
+                        id="creator-mode-button"
+                        class="creator-button"
+                        type="button"
+                    >
+                        Creator Mode
+                    </button>
+
+                </div>
+
+            </main>
+
+
+            <!-- =============================================
+                 BOTTOM NAVIGATION
+            ============================================== -->
+
+            <nav class="bottom-navigation">
+
+                <button
+                    class="bottom-nav-item active"
+                    data-page="home"
+                >
+                    Home
+                </button>
+
+                <button
+                    class="bottom-nav-item"
+                    data-page="career"
+                >
+                    Career
+                </button>
+
+                <button
+                    class="bottom-nav-item"
+                    data-page="club"
+                >
+                    Club
+                </button>
+
+                <button
+                    class="bottom-nav-item"
+                    data-page="profile"
+                >
+                    Profile
+                </button>
+
+            </nav>
+
+        </section>
+
+
+        <!-- =================================================
+             CREATOR MODE
+        ================================================== -->
+
+        <section
+            id="creator-screen"
+            class="screen creator-screen hidden"
+        >
+
+            <div class="creator-container">
+
+
+                <header class="creator-header">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            RV SPORTS
+                        </span>
+
+                        <h2>
+                            Creator Console
+                        </h2>
+
+                        <p>
+                            Full control over your football universe.
+                        </p>
+
+                    </div>
+
+                    <button
+                        id="creator-close-button"
+                        class="icon-button"
+                        type="button"
+                    >
+                        ×
+                    </button>
+
+                </header>
+
+
+                <!-- =========================================
+                     CREATOR MENU
+                ========================================== -->
+
+                <div class="creator-menu">
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="character"
+                    >
+                        <strong>
+                            Character Editor
+                        </strong>
+
+                        <span>
+                            Edit player identity and attributes
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="economy"
+                    >
+                        <strong>
+                            Economy Editor
+                        </strong>
+
+                        <span>
+                            Money, salary, reputation and value
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="career"
+                    >
+                        <strong>
+                            Career Editor
+                        </strong>
+
+                        <span>
+                            Matches, goals, assists and career records
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="clubs"
+                    >
+                        <strong>
+                            Club History
+                        </strong>
+
+                        <span>
+                            Add, edit or remove club history
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="trophies"
+                    >
+                        <strong>
+                            Trophy Editor
+                        </strong>
+
+                        <span>
+                            Club, national and individual trophies
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="world"
+                    >
+                        <strong>
+                            World Editor
+                        </strong>
+
+                        <span>
+                            Clubs, countries and competitions
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="social"
+                    >
+                        <strong>
+                            Social Editor
+                        </strong>
+
+                        <span>
+                            Fans, followers and popularity
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="god"
+                    >
+                        <strong>
+                            God Mode
+                        </strong>
+
+                        <span>
+                            Maximum player control
+                        </span>
+                    </button>
+
+
+                    <button
+                        class="creator-menu-item"
+                        data-editor="backup"
+                    >
+                        <strong>
+                            Backup & Restore
+                        </strong>
+
+                        <span>
+                            Protect and restore game data
+                        </span>
+                    </button>
+
+                </div>
+
+
+                <!-- =========================================
+                     CREATOR EDITOR AREA
+                ========================================== -->
+
+                <div
+                    id="creator-editor"
+                    class="creator-editor"
+                >
+
+                    <div class="empty-editor">
+
+                        <h3>
+                            Select an Editor
+                        </h3>
+
+                        <p>
+                            Choose a Creator tool to begin editing.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     CREATOR LOG
+                ========================================== -->
+
+                <div class="creator-log-section">
+
+                    <div class="section-heading">
+
+                        <h3>
+                            Creator Log
+                        </h3>
+
+                        <span>
+                            Recent changes
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="creator-log"
+                        class="creator-log"
+                    >
+
+                        <div class="empty-log">
+                            No creator changes yet.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             GLOBAL MODAL
+        ================================================== -->
+
+        <div
+            id="global-modal"
+            class="modal hidden"
+        >
+
+            <div class="modal-overlay"></div>
+
+            <div class="modal-content">
+
+                <button
+                    id="modal-close"
+                    class="modal-close"
+                    type="button"
+                >
+                    ×
+                </button>
+
+                <div
+                    id="modal-body"
+                    class="modal-body"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             TOAST / NOTIFICATION
+        ================================================== -->
+
+        <div
+            id="toast-container"
+            class="toast-container"
+        ></div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <!-- Core -->
+
+    <script src="js/core/state.js"></script>
+    <script src="js/core/save.js"></script>
+    <script src="js/core/utils.js"></script>
+    <script src="js/core/router.js"></script>
+
+
+    <!-- Player -->
+
+    <script src="js/player/player.js"></script>
+    <script src="js/player/stats.js"></script>
+    <script src="js/player/career.js"></script>
+    <script src="js/player/trophies.js"></script>
+
+
+    <!-- World -->
+
+    <script src="js/world/clubs.js"></script>
+    <script src="js/world/countries.js"></script>
+    <script src="js/world/competitions.js"></script>
+    <script src="js/world/world.js"></script>
+
+
+    <!-- Systems -->
+
+    <script src="js/systems/match.js"></script>
+    <script src="js/systems/transfer.js"></script>
+    <script src="js/systems/social.js"></script>
+    <script src="js/systems/economy.js"></script>
+
+
+    <!-- UI -->
+
+    <script src="js/ui/navbar.js"></script>
+    <script src="js/ui/modal.js"></script>
+    <script src="js/ui/playerCard.js"></script>
+    <script src="js/ui/notifications.js"></script>
+
+
+    <!-- Admin -->
+
+    <script src="js/admin/auth.js"></script>
+    <script src="js/admin/console.js"></script>
+    <script src="js/admin/playerEditor.js"></script>
+    <script src="js/admin/careerEditor.js"></script>
+    <script src="js/admin/trophyEditor.js"></script>
+    <script src="js/admin/worldEditor.js"></script>
+
+
+    <!-- Main App -->
+
+    <script src="js/app.js"></script>
+
+</body>
+</html>
