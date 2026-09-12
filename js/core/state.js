@@ -1,60 +1,52 @@
-```javascript
 /* =========================================================
    RV SPORTS: FC CUP 26
    CORE STATE
+   File: js/core/state.js
+
+   CENTRAL GAME STATE
+
+   RULE:
+   - Semua data utama game berada di S.
+   - Gameplay systems membaca / mengubah S.
+   - UI hanya menampilkan data.
+   - Save system menyimpan S.
+   - Creator Mode juga bekerja melalui S.
+   - Tidak ada DOM manipulation di file ini.
    ========================================================= */
-
-/*
-    File ini adalah pusat data game.
-
-    RULE:
-    - Gameplay boleh membaca state.
-    - Gameplay boleh mengubah state melalui system masing-masing.
-    - Save system nanti bertugas menyimpan state.
-    - UI hanya menampilkan state.
-    - Creator Mode juga mengubah state.
-
-    Jangan taruh DOM manipulation di file ini.
-*/
 
 
 /* =========================================================
-   01. GAME VERSION
+   01. GAME CONSTANTS
    ========================================================= */
-
-const GAME_VERSION = "1.0.0";
 
 const GAME_NAME = "RV SPORTS: FC CUP 26";
+const GAME_VERSION = "1.0.0";
+
+const DEFAULT_SEASON = 2026;
+const DEFAULT_DATE = "2026-07-01";
 
 
 /* =========================================================
-   02. DEFAULT PLAYER
+   02. PLAYER STATE
    ========================================================= */
 
 function createDefaultPlayer() {
 
     return {
 
-        /* ---------------------------------------------
-           Identity
-        ---------------------------------------------- */
+        /* Identity */
 
-        id: generatePlayerId(),
-
+        id: "",
         name: "",
-
         shirtName: "",
-
         email: "",
 
         birthDate: "",
-
         birthPlace: "",
 
         age: 18,
 
         nationality: "",
-
         position: "",
 
         shirtNumber: 0,
@@ -62,68 +54,47 @@ function createDefaultPlayer() {
         photo: "",
 
 
-        /* ---------------------------------------------
-           Football Rating
-        ---------------------------------------------- */
+        /* Football rating */
 
         ovr: 0,
-
         potential: 0,
 
         level: 1,
-
         experience: 0,
 
         form: 100,
-
         morale: 100,
-
         fitness: 100,
-
         energy: 100,
-
         health: 100,
 
 
-        /* ---------------------------------------------
-           Main Stats
-        ---------------------------------------------- */
+        /* Main stats */
 
         stats: {
 
             pac: 0,
-
             sho: 0,
-
             pas: 0,
-
             dri: 0,
-
             def: 0,
-
             phy: 0
 
         },
 
 
-        /* ---------------------------------------------
-           Career Statistics
-        ---------------------------------------------- */
+        /* Career totals */
 
         career: {
 
             appearances: 0,
-
             goals: 0,
-
             assists: 0,
 
             cleanSheets: 0,
 
             wins: 0,
-
             losses: 0,
-
             draws: 0,
 
             minutesPlayed: 0
@@ -131,16 +102,12 @@ function createDefaultPlayer() {
         },
 
 
-        /* ---------------------------------------------
-           Current Club
-        ---------------------------------------------- */
+        /* Current club */
 
         currentClub: {
 
             clubId: "",
-
             joined: null,
-
             contractUntil: null,
 
             shirtNumber: 0,
@@ -150,40 +117,19 @@ function createDefaultPlayer() {
         },
 
 
-        /* ---------------------------------------------
-           Club History
-        ---------------------------------------------- */
+        /* Club history */
 
         clubs: [],
 
 
-        /*
-            Example:
-
-            {
-                clubId: "club_001",
-                joined: 2026,
-                left: 2029,
-                appearances: 91,
-                goals: 47,
-                assists: 22,
-                trophies: []
-            }
-        */
-
-
-        /* ---------------------------------------------
-           National Team
-        ---------------------------------------------- */
+        /* National team */
 
         nationalTeam: {
 
             country: "",
 
             caps: 0,
-
             goals: 0,
-
             assists: 0,
 
             trophies: []
@@ -191,24 +137,18 @@ function createDefaultPlayer() {
         },
 
 
-        /* ---------------------------------------------
-           Trophies
-        ---------------------------------------------- */
+        /* Trophies */
 
         trophies: {
 
             club: [],
-
             national: [],
-
             individual: []
 
         },
 
 
-        /* ---------------------------------------------
-           Economy
-        ---------------------------------------------- */
+        /* Economy */
 
         economy: {
 
@@ -227,9 +167,7 @@ function createDefaultPlayer() {
         },
 
 
-        /* ---------------------------------------------
-           Social
-        ---------------------------------------------- */
+        /* Social */
 
         social: {
 
@@ -246,16 +184,12 @@ function createDefaultPlayer() {
         },
 
 
-        /* ---------------------------------------------
-           Personal Achievements
-        ---------------------------------------------- */
+        /* Achievements */
 
         achievements: [],
 
 
-        /* ---------------------------------------------
-           Player Preferences
-        ---------------------------------------------- */
+        /* Preferences */
 
         preferences: {
 
@@ -273,7 +207,7 @@ function createDefaultPlayer() {
 
 
 /* =========================================================
-   03. DEFAULT CAREER STATE
+   03. CAREER STATE
    ========================================================= */
 
 function createDefaultCareer() {
@@ -284,16 +218,13 @@ function createDefaultCareer() {
 
         startDate: null,
 
-        currentSeason: 2026,
+        currentSeason: DEFAULT_SEASON,
 
-        currentYear: 2026,
-
+        currentYear: DEFAULT_SEASON,
         currentMonth: 7,
-
         currentDay: 1,
 
         currentClubId: "",
-
         previousClubId: "",
 
         totalSeasons: 0,
@@ -327,9 +258,9 @@ function createDefaultWorld() {
 
     return {
 
-        currentDate: "2026-07-01",
+        currentDate: DEFAULT_DATE,
 
-        currentSeason: 2026,
+        currentSeason: DEFAULT_SEASON,
 
         currentCompetition: "",
 
@@ -339,21 +270,34 @@ function createDefaultWorld() {
 
         activeCountry: "",
 
+
+        /* World database */
+
         clubs: [],
-
         countries: [],
-
         competitions: [],
 
+
+        /* Match system */
+
         fixtures: [],
-
         results: [],
-
         standings: [],
+
+
+        /* Transfers */
 
         transfers: [],
 
-        worldEvents: []
+
+        /* Dynamic world events */
+
+        worldEvents: [],
+
+
+        /* Optional schedule */
+
+        schedule: null
 
     };
 
@@ -381,7 +325,6 @@ function createDefaultEconomy() {
         transactions: [],
 
         incomeHistory: [],
-
         expenseHistory: []
 
     };
@@ -415,16 +358,14 @@ function createDefaultSocial() {
 
 
 /* =========================================================
-   07. ADMIN STATE
+   07. ADMIN / CREATOR STATE
    ========================================================= */
 
 function createDefaultAdmin() {
 
     return {
 
-        /* ---------------------------------------------
-           Authentication
-        ---------------------------------------------- */
+        /* Authentication */
 
         creatorMode: false,
 
@@ -433,18 +374,14 @@ function createDefaultAdmin() {
         creatorEmail: "",
 
 
-        /* ---------------------------------------------
-           OVR Override
-        ---------------------------------------------- */
+        /* OVR override */
 
         ovrOverride: false,
 
         forcedOvr: null,
 
 
-        /* ---------------------------------------------
-           Creator Controls
-        ---------------------------------------------- */
+        /* God mode */
 
         godMode: false,
 
@@ -455,25 +392,19 @@ function createDefaultAdmin() {
         unlimitedHealth: false,
 
 
-        /* ---------------------------------------------
-           Logs
-        ---------------------------------------------- */
+        /* Logs */
 
         logs: [],
 
 
-        /* ---------------------------------------------
-           Backup
-        ---------------------------------------------- */
+        /* Backup */
 
         lastBackup: null,
 
         backupCount: 0,
 
 
-        /* ---------------------------------------------
-           Security
-        ---------------------------------------------- */
+        /* Session */
 
         sessionStarted: null
 
@@ -510,74 +441,66 @@ function createDefaultSettings() {
 
 
 /* =========================================================
-   09. COMPLETE GAME STATE
+   09. GAME META
+   ========================================================= */
+
+function createDefaultMeta() {
+
+    const now =
+        new Date().toISOString();
+
+    return {
+
+        gameName: GAME_NAME,
+
+        version: GAME_VERSION,
+
+        createdAt: now,
+
+        updatedAt: now,
+
+        lastPlayedAt: null,
+
+        lastSavedAt: null,
+
+        lastLoadedAt: null,
+
+        saveSlot: 1
+
+    };
+
+}
+
+
+/* =========================================================
+   10. COMPLETE GAME STATE
    ========================================================= */
 
 function createDefaultGameState() {
 
     return {
 
-        /* Game metadata */
-
-        meta: {
-
-            gameName: GAME_NAME,
-
-            version: GAME_VERSION,
-
-            createdAt: new Date().toISOString(),
-
-            lastPlayedAt: null,
-
-            saveSlot: 1
-
-        },
-
-
-        /* Account */
+        meta: createDefaultMeta(),
 
         account: {
 
             email: "",
-
             name: "",
-
             created: false
 
         },
 
-
-        /* Player */
-
         player: createDefaultPlayer(),
-
-
-        /* Career */
 
         career: createDefaultCareer(),
 
-
-        /* Football world */
-
         world: createDefaultWorld(),
-
-
-        /* Economy */
 
         economy: createDefaultEconomy(),
 
-
-        /* Social */
-
         social: createDefaultSocial(),
 
-
-        /* Admin / Creator */
-
         admin: createDefaultAdmin(),
-
-
-        /* Settings */
 
         settings: createDefaultSettings()
 
@@ -587,48 +510,53 @@ function createDefaultGameState() {
 
 
 /* =========================================================
-   10. GLOBAL GAME STATE
+   11. PLAYER ID
    ========================================================= */
 
-/*
-    S adalah singkatan dari State.
+function generatePlayerId() {
 
-    Semua system nanti membaca object ini.
+    const time =
+        Date.now().toString(36);
 
-    Contoh:
+    const random =
+        Math.random()
+            .toString(36)
+            .slice(2, 8);
 
-        S.player.name
+    return "player_" + time + "_" + random;
 
-        S.player.ovr
+}
 
-        S.player.stats.pac
 
-        S.player.economy.money
-
-        S.player.social.followers
-
-        S.player.trophies.club
-
-        S.career.currentSeason
-
-        S.admin.creatorMode
-*/
+/* =========================================================
+   12. INITIAL GAME STATE
+   ========================================================= */
 
 const S = createDefaultGameState();
 
 
-/* =========================================================
-   11. STATE HELPERS
-   ========================================================= */
-
-
 /*
-    Reset seluruh game state.
+   Give the initial player a valid ID.
+
+   Kita sengaja melakukan ini setelah S dibuat
+   supaya createDefaultPlayer() tidak bergantung
+   pada generatePlayerId() saat object dibuat.
 */
+
+S.player.id = generatePlayerId();
+
+
+/* =========================================================
+   13. STATE RESET
+   ========================================================= */
 
 function resetGameState() {
 
-    const freshState = createDefaultGameState();
+    const fresh =
+        createDefaultGameState();
+
+    fresh.player.id =
+        generatePlayerId();
 
     Object.keys(S).forEach(key => {
 
@@ -636,16 +564,28 @@ function resetGameState() {
 
     });
 
-    Object.assign(S, freshState);
+    Object.assign(
+        S,
+        fresh
+    );
+
+    return S;
 
 }
 
 
-/*
-    Update last played timestamp.
-*/
+/* =========================================================
+   14. TOUCH STATE
+   ========================================================= */
 
 function touchGameState() {
+
+    if (!S.meta) {
+        S.meta = createDefaultMeta();
+    }
+
+    S.meta.updatedAt =
+        new Date().toISOString();
 
     S.meta.lastPlayedAt =
         new Date().toISOString();
@@ -653,11 +593,9 @@ function touchGameState() {
 }
 
 
-/*
-    Get a safe copy of state.
-
-    Berguna untuk backup atau debugging.
-*/
+/* =========================================================
+   15. CLONE STATE
+   ========================================================= */
 
 function cloneGameState() {
 
@@ -669,41 +607,30 @@ function cloneGameState() {
 
 
 /* =========================================================
-   12. PLAYER ID
-   ========================================================= */
-
-function generatePlayerId() {
-
-    const timestamp =
-        Date.now().toString(36);
-
-    const random =
-        Math.random()
-            .toString(36)
-            .substring(2, 8);
-
-    return `player_${timestamp}_${random}`;
-
-}
-
-
-/* =========================================================
-   13. CREATOR LOG
+   16. CREATOR LOG
    ========================================================= */
 
 function addCreatorLog(
     action,
     target,
-    oldValue,
-    newValue
+    oldValue = null,
+    newValue = null
 ) {
+
+    if (!S.admin) {
+        S.admin =
+            createDefaultAdmin();
+    }
 
     const log = {
 
         id:
-            `log_${Date.now()}_${Math.random()
+            "log_" +
+            Date.now() +
+            "_" +
+            Math.random()
                 .toString(36)
-                .substring(2, 7)}`,
+                .slice(2, 7),
 
         timestamp:
             new Date().toISOString(),
@@ -722,12 +649,11 @@ function addCreatorLog(
     S.admin.logs.unshift(log);
 
 
-    /*
-        Limit log supaya state tidak
-        tumbuh tanpa batas.
-    */
+    /* Maximum 200 logs */
 
-    if (S.admin.logs.length > 200) {
+    if (
+        S.admin.logs.length > 200
+    ) {
 
         S.admin.logs =
             S.admin.logs.slice(0, 200);
@@ -738,7 +664,7 @@ function addCreatorLog(
 
 
 /* =========================================================
-   14. TROPHY FACTORY
+   17. TROPHY FACTORY
    ========================================================= */
 
 function createTrophy({
@@ -762,23 +688,26 @@ function createTrophy({
     return {
 
         id:
-            `trophy_${Date.now()}_${Math.random()
+            "trophy_" +
+            Date.now() +
+            "_" +
+            Math.random()
                 .toString(36)
-                .substring(2, 8)}`,
+                .slice(2, 8),
 
-        name,
+        name: name,
 
-        year,
+        year: year,
 
-        type,
+        type: type,
 
-        competition,
+        competition: competition,
 
-        clubId,
+        clubId: clubId,
 
-        country,
+        country: country,
 
-        description,
+        description: description,
 
         createdAt:
             new Date().toISOString()
@@ -789,7 +718,7 @@ function createTrophy({
 
 
 /* =========================================================
-   15. CLUB HISTORY FACTORY
+   18. CLUB HISTORY FACTORY
    ========================================================= */
 
 function createClubHistoryEntry({
@@ -812,19 +741,19 @@ function createClubHistoryEntry({
 
     return {
 
-        clubId,
+        clubId: clubId,
 
-        joined,
+        joined: joined,
 
-        left,
+        left: left,
 
-        appearances,
+        appearances: appearances,
 
-        goals,
+        goals: goals,
 
-        assists,
+        assists: assists,
 
-        trophies
+        trophies: trophies
 
     };
 
@@ -832,7 +761,7 @@ function createClubHistoryEntry({
 
 
 /* =========================================================
-   16. TRANSFER OFFER FACTORY
+   19. TRANSFER OFFER FACTORY
    ========================================================= */
 
 function createTransferOffer({
@@ -852,19 +781,22 @@ function createTransferOffer({
     return {
 
         id:
-            `offer_${Date.now()}_${Math.random()
+            "offer_" +
+            Date.now() +
+            "_" +
+            Math.random()
                 .toString(36)
-                .substring(2, 7)}`,
+                .slice(2, 7),
 
-        clubId,
+        clubId: clubId,
 
-        salary,
+        salary: salary,
 
-        marketValue,
+        marketValue: marketValue,
 
-        contractYears,
+        contractYears: contractYears,
 
-        role,
+        role: role,
 
         status: "Pending",
 
@@ -877,7 +809,7 @@ function createTransferOffer({
 
 
 /* =========================================================
-   17. TRANSACTION FACTORY
+   20. TRANSACTION FACTORY
    ========================================================= */
 
 function createTransaction({
@@ -895,17 +827,20 @@ function createTransaction({
     return {
 
         id:
-            `transaction_${Date.now()}_${Math.random()
+            "transaction_" +
+            Date.now() +
+            "_" +
+            Math.random()
                 .toString(36)
-                .substring(2, 7)}`,
+                .slice(2, 7),
 
-        type,
+        type: type,
 
-        category,
+        category: category,
 
-        amount,
+        amount: Number(amount) || 0,
 
-        description,
+        description: description,
 
         date:
             new Date().toISOString()
@@ -916,40 +851,16 @@ function createTransaction({
 
 
 /* =========================================================
-   18. STATE DEBUG
-   ========================================================= */
-
-/*
-    Dipakai nanti saat development.
-
-    Console:
-
-        debugGameState()
-
-*/
-
-function debugGameState() {
-
-    console.log(
-        "========== FC CUP 26 STATE =========="
-    );
-
-    console.log(S);
-
-    console.log(
-        "======================================"
-    );
-
-}
-
-
-/* =========================================================
-   19. INITIALIZATION CHECK
+   21. STATE VALIDATION
    ========================================================= */
 
 function validateInitialState() {
 
     const requiredPaths = [
+
+        "meta",
+
+        "account",
 
         "player",
 
@@ -988,11 +899,62 @@ function validateInitialState() {
     if (missing.length > 0) {
 
         console.error(
-            "FC CUP 26 state initialization failed:",
+            "[STATE] Initialization failed:",
             missing
         );
 
         return false;
+
+    }
+
+
+    /* Player checks */
+
+    if (!S.player.stats) {
+
+        console.error(
+            "[STATE] Player stats missing."
+        );
+
+        return false;
+
+    }
+
+
+    if (!S.player.career) {
+
+        console.error(
+            "[STATE] Player career data missing."
+        );
+
+        return false;
+
+    }
+
+
+    /* World checks */
+
+    if (
+        !Array.isArray(S.world.clubs)
+    ) {
+
+        S.world.clubs = [];
+
+    }
+
+    if (
+        !Array.isArray(S.world.countries)
+    ) {
+
+        S.world.countries = [];
+
+    }
+
+    if (
+        !Array.isArray(S.world.competitions)
+    ) {
+
+        S.world.competitions = [];
 
     }
 
@@ -1003,7 +965,264 @@ function validateInitialState() {
 
 
 /* =========================================================
-   20. BOOT STATE
+   22. STATE REPAIR
+   ========================================================= */
+
+function repairGameState() {
+
+    const defaults =
+        createDefaultGameState();
+
+
+    /* Top level */
+
+    Object.keys(defaults)
+        .forEach(key => {
+
+            if (
+                S[key] === undefined ||
+                S[key] === null
+            ) {
+
+                S[key] =
+                    defaults[key];
+
+            }
+
+        });
+
+
+    /* Player */
+
+    if (!S.player.id) {
+
+        S.player.id =
+            generatePlayerId();
+
+    }
+
+
+    if (!S.player.stats) {
+
+        S.player.stats =
+            defaults.player.stats;
+
+    }
+
+
+    if (!S.player.career) {
+
+        S.player.career =
+            defaults.player.career;
+
+    }
+
+
+    if (!S.player.currentClub) {
+
+        S.player.currentClub =
+            defaults.player.currentClub;
+
+    }
+
+
+    if (!S.player.nationalTeam) {
+
+        S.player.nationalTeam =
+            defaults.player.nationalTeam;
+
+    }
+
+
+    if (!S.player.trophies) {
+
+        S.player.trophies =
+            defaults.player.trophies;
+
+    }
+
+
+    if (!S.player.economy) {
+
+        S.player.economy =
+            defaults.player.economy;
+
+    }
+
+
+    if (!S.player.social) {
+
+        S.player.social =
+            defaults.player.social;
+
+    }
+
+
+    if (!S.player.preferences) {
+
+        S.player.preferences =
+            defaults.player.preferences;
+
+    }
+
+
+    /* World arrays */
+
+    const worldArrays = [
+
+        "clubs",
+        "countries",
+        "competitions",
+        "fixtures",
+        "results",
+        "standings",
+        "transfers",
+        "worldEvents"
+
+    ];
+
+
+    worldArrays.forEach(key => {
+
+        if (
+            !Array.isArray(
+                S.world[key]
+            )
+        ) {
+
+            S.world[key] = [];
+
+        }
+
+    });
+
+
+    /* Economy arrays */
+
+    [
+        "sponsorships",
+        "businesses",
+        "transactions",
+        "incomeHistory",
+        "expenseHistory"
+
+    ].forEach(key => {
+
+        if (
+            !Array.isArray(
+                S.economy[key]
+            )
+        ) {
+
+            S.economy[key] = [];
+
+        }
+
+    });
+
+
+    /* Social arrays */
+
+    [
+        "posts",
+        "notifications",
+        "mediaAppearances",
+        "endorsements",
+        "socialEvents"
+
+    ].forEach(key => {
+
+        if (
+            !Array.isArray(
+                S.social[key]
+            )
+        ) {
+
+            S.social[key] = [];
+
+        }
+
+    });
+
+
+    /* Admin logs */
+
+    if (
+        !Array.isArray(
+            S.admin.logs
+        )
+    ) {
+
+        S.admin.logs = [];
+
+    }
+
+
+    touchGameState();
+
+
+    return S;
+
+}
+
+
+/* =========================================================
+   23. DEBUG
+   ========================================================= */
+
+function debugGameState() {
+
+    console.log(
+        "======================================"
+    );
+
+    console.log(
+        GAME_NAME
+    );
+
+    console.log(
+        "Version:",
+        GAME_VERSION
+    );
+
+    console.log(
+        "======================================"
+    );
+
+    console.log(
+        "STATE:",
+        S
+    );
+
+    console.log(
+        "PLAYER:",
+        S.player
+    );
+
+    console.log(
+        "CAREER:",
+        S.career
+    );
+
+    console.log(
+        "WORLD:",
+        S.world
+    );
+
+    console.log(
+        "ADMIN:",
+        S.admin
+    );
+
+    console.log(
+        "======================================"
+    );
+
+}
+
+
+/* =========================================================
+   24. FINAL STATE CHECK
    ========================================================= */
 
 const STATE_READY =
@@ -1016,5 +1235,20 @@ if (STATE_READY) {
         `${GAME_NAME} state initialized.`
     );
 
+    console.log(
+        "[STATE] Version:",
+        GAME_VERSION
+    );
+
+    console.log(
+        "[STATE] Player ID:",
+        S.player.id
+    );
+
+} else {
+
+    console.error(
+        "[STATE] State system failed."
+    );
+
 }
-```
