@@ -7,7 +7,9 @@
 (function () {
   "use strict";
 
-  let bootProgress = 0;
+  console.log("[APP] app.js loaded.");
+
+  let bootProgress = 1;
 
   function updateLoading(progress, status) {
     bootProgress = Math.max(
@@ -40,23 +42,40 @@
   }
 
   function wait(ms) {
-    return new Promise(resolve =>
-      setTimeout(resolve, ms)
-    );
+    return new Promise(resolve => {
+      setTimeout(resolve, ms);
+    });
   }
 
-  function checkSystem(
-    name,
-    ready
-  ) {
-    if (!ready) {
+  function checkSystem(name, condition) {
+    if (!condition) {
       throw new Error(
-        `${name} system is not ready.`
+        `${name} system tidak tersedia.`
       );
     }
   }
 
+  function hideLoadingScreen() {
+    const loadingScreen =
+      document.getElementById("loadingScreen");
+
+    if (!loadingScreen) {
+      console.warn(
+        "[APP] loadingScreen tidak ditemukan."
+      );
+      return;
+    }
+
+    loadingScreen.classList.remove("active");
+
+    setTimeout(() => {
+      loadingScreen.style.display = "none";
+    }, 400);
+  }
+
   async function bootGame() {
+    console.log("[APP] Boot started.");
+
     try {
       updateLoading(
         5,
@@ -88,6 +107,10 @@
 
       await wait(100);
 
+      /* =========================
+         PLAYER
+         ========================= */
+
       updateLoading(
         25,
         "Memuat database pemain..."
@@ -106,6 +129,12 @@
       ) {
         initializeStatsSystem();
       }
+
+      await wait(100);
+
+      /* =========================
+         CAREER
+         ========================= */
 
       updateLoading(
         40,
@@ -144,6 +173,8 @@
         initializeClubSystem();
       }
 
+      await wait(100);
+
       updateLoading(
         65,
         "Memuat negara..."
@@ -155,6 +186,8 @@
       ) {
         initializeCountrySystem();
       }
+
+      await wait(100);
 
       updateLoading(
         75,
@@ -179,28 +212,35 @@
         "Menyiapkan dunia sepak bola..."
       );
 
-      if (
+      checkSystem(
+        "Router",
         typeof initializeRouter ===
-        "function"
-      ) {
-        initializeRouter();
-      }
+          "function"
+      );
+
+      initializeRouter();
 
       await wait(150);
+
+      /* =========================
+         FINISH
+         ========================= */
 
       updateLoading(
         95,
         "Menyiapkan antarmuka..."
       );
 
-      await wait(150);
+      await wait(200);
 
       updateLoading(
         100,
         "RV SPORTS siap dimainkan!"
       );
 
-      await wait(350);
+      await wait(500);
+
+      hideLoadingScreen();
 
       console.log(
         "[APP] RV SPORTS: FC CUP 26 boot complete."
@@ -237,16 +277,17 @@
         "ERROR";
     }
 
-    const detail =
-      error?.message ||
-      "Unknown boot error";
-
     console.error(
-      `[RV SPORTS] ${detail}`
+      "[RV SPORTS] Error:",
+      error?.message || error
     );
   }
 
   function startBoot() {
+    console.log(
+      "[APP] Starting boot..."
+    );
+
     if (
       document.readyState ===
       "loading"
