@@ -1,1241 +1,1026 @@
 /* =========================================================
    RV SPORTS: FC CUP 26
-   WORLD / COUNTRIES SYSTEM
-   File: js/world/countries.js
+   COUNTRIES SYSTEM
+   Version: 2.1.0
    ========================================================= */
 
-const COUNTRY_CONFIG = {
-  minRating: 1,
-  maxRating: 99,
-  maxCountries: 300,
-  defaultContinent: "Unknown",
-  defaultCode: "UNK",
-  defaultFifaRanking: 999,
-  defaultReputation: 0
-};
+(function () {
+    "use strict";
 
-/* =========================================================
-   COUNTRY TIERS
-   ========================================================= */
+    const VERSION = "2.1.0";
 
-const COUNTRY_TIERS = {
-  developing: {
-    min: 1,
-    max: 49,
-    label: "Developing"
-  },
-
-  competitive: {
-    min: 50,
-    max: 69,
-    label: "Competitive"
-  },
-
-  strong: {
-    min: 70,
-    max: 79,
-    label: "Strong"
-  },
-
-  elite: {
-    min: 80,
-    max: 89,
-    label: "Elite"
-  },
-
-  worldclass: {
-    min: 90,
-    max: 99,
-    label: "World Class"
-  }
-};
-
-/* =========================================================
-   COUNTRY CREATOR
-   ========================================================= */
-
-function createCountry(data = {}) {
-  const now = new Date().toISOString();
-
-  const country = {
-    id: data.id || createId("country"),
-
-    name: data.name || "New Country",
-    shortName: data.shortName || data.name || "New Country",
-    code: String(data.code || COUNTRY_CONFIG.defaultCode).toUpperCase(),
-
-    continent: data.continent || COUNTRY_CONFIG.defaultContinent,
-
-    rating: clamp(
-      Number(data.rating ?? 50),
-      COUNTRY_CONFIG.minRating,
-      COUNTRY_CONFIG.maxRating
-    ),
-
-    attack: clamp(
-      Number(data.attack ?? data.rating ?? 50),
-      1,
-      99
-    ),
-
-    midfield: clamp(
-      Number(data.midfield ?? data.rating ?? 50),
-      1,
-      99
-    ),
-
-    defense: clamp(
-      Number(data.defense ?? data.rating ?? 50),
-      1,
-      99
-    ),
-
-    fifaRanking: Number(
-      data.fifaRanking ?? COUNTRY_CONFIG.defaultFifaRanking
-    ),
-
-    reputation: clamp(
-      Number(data.reputation ?? COUNTRY_CONFIG.defaultReputation),
-      0,
-      100
-    ),
-
-    population: Number(data.population || 0),
-
-    capital: data.capital || "",
-
-    flag: data.flag || "",
-
-    colors: {
-      primary: data.colors?.primary || "#1f2937",
-      secondary: data.colors?.secondary || "#ffffff"
-    },
-
-    nationalTeam: {
-      active: data.nationalTeam?.active !== false,
-
-      manager: data.nationalTeam?.manager || "",
-
-      captainId: data.nationalTeam?.captainId || "",
-
-      squad: Array.isArray(data.nationalTeam?.squad)
-        ? [...data.nationalTeam.squad]
-        : [],
-
-      capsRecord: Number(data.nationalTeam?.capsRecord || 0),
-
-      goalsRecord: Number(data.nationalTeam?.goalsRecord || 0),
-
-      trophies: Array.isArray(data.nationalTeam?.trophies)
-        ? [...data.nationalTeam.trophies]
-        : []
-    },
-
-    competitions: Array.isArray(data.competitions)
-      ? [...data.competitions]
-      : [],
-
-    trophies: Array.isArray(data.trophies)
-      ? [...data.trophies]
-      : [],
-
-    achievements: Array.isArray(data.achievements)
-      ? [...data.achievements]
-      : [],
-
-    active: data.active !== false,
-
-    createdAt: data.createdAt || now,
-    updatedAt: now
-  };
-
-  country.rating = calculateCountryRating(country);
-
-  return country;
-}
-
-/* =========================================================
-   COUNTRY COLLECTION
-   ========================================================= */
-
-function getCountryCollection() {
-  if (!S.world || !Array.isArray(S.world.countries)) {
-    return [];
-  }
-
-  return S.world.countries;
-}
-
-function addCountry(countryData) {
-  const countries = getCountryCollection();
-
-  if (countries.length >= COUNTRY_CONFIG.maxCountries) {
-    return {
-      success: false,
-      message: "Country collection limit reached.",
-      country: null
-    };
-  }
-
-  const country =
-    countryData?.id
-      ? createCountry(countryData)
-      : createCountry(countryData || {});
-
-  const existing = countries.find(
-    item => item.id === country.id
-  );
-
-  if (existing) {
-    return {
-      success: false,
-      message: "Country ID already exists.",
-      country: existing
-    };
-  }
-
-  countries.push(country);
-
-  touchGameState();
-
-  addCreatorLog(
-    "ADD_COUNTRY",
-    country.id,
-    null,
-    country.name
-  );
-
-  return {
-    success: true,
-    message: "Country added.",
-    country
-  };
-}
-
-function removeCountry(countryId) {
-  const countries = getCountryCollection();
-
-  const index = countries.findIndex(
-    country => country.id === countryId
-  );
-
-  if (index === -1) {
-    return {
-      success: false,
-      message: "Country not found."
-    };
-  }
-
-  const removed = countries.splice(index, 1)[0];
-
-  touchGameState();
-
-  addCreatorLog(
-    "REMOVE_COUNTRY",
-    countryId,
-    removed.name,
-    null
-  );
-
-  return {
-    success: true,
-    message: "Country removed.",
-    country: removed
-  };
-}
-
-/* =========================================================
-   COUNTRY GETTERS
-   ========================================================= */
-
-function getCountryById(countryId) {
-  return getCountryCollection().find(
-    country => country.id === countryId
-  ) || null;
-}
-
-function getCountryByName(name) {
-  if (!name) {
-    return null;
-  }
-
-  const normalized = String(name)
-    .trim()
-    .toLowerCase();
-
-  return getCountryCollection().find(
-    country =>
-      country.name.toLowerCase() === normalized ||
-      country.shortName.toLowerCase() === normalized ||
-      country.code.toLowerCase() === normalized
-  ) || null;
-}
-
-function searchCountries(query) {
-  if (!query) {
-    return getCountryCollection();
-  }
-
-  const normalized = String(query)
-    .trim()
-    .toLowerCase();
-
-  return getCountryCollection().filter(country => {
-    return (
-      country.name.toLowerCase().includes(normalized) ||
-      country.shortName.toLowerCase().includes(normalized) ||
-      country.code.toLowerCase().includes(normalized) ||
-      country.continent.toLowerCase().includes(normalized)
-    );
-  });
-}
-
-function getCountriesByContinent(continent) {
-  if (!continent) {
-    return [];
-  }
-
-  return getCountryCollection().filter(
-    country =>
-      country.continent.toLowerCase() ===
-      String(continent).toLowerCase()
-  );
-}
-
-/* =========================================================
-   COUNTRY RATING
-   ========================================================= */
-
-function calculateCountryRating(country) {
-  if (!country) {
-    return 0;
-  }
-
-  const attack = Number(country.attack || 0);
-  const midfield = Number(country.midfield || 0);
-  const defense = Number(country.defense || 0);
-
-  return Math.round(
-    (attack + midfield + defense) / 3
-  );
-}
-
-function refreshCountryRating(countryId) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return null;
-  }
-
-  const oldRating = country.rating;
-
-  country.rating = clamp(
-    calculateCountryRating(country),
-    COUNTRY_CONFIG.minRating,
-    COUNTRY_CONFIG.maxRating
-  );
-
-  country.updatedAt = new Date().toISOString();
-
-  touchGameState();
-
-  if (oldRating !== country.rating) {
-    addCreatorLog(
-      "REFRESH_COUNTRY_RATING",
-      countryId,
-      oldRating,
-      country.rating
-    );
-  }
-
-  return country.rating;
-}
-
-/* =========================================================
-   COUNTRY TIER
-   ========================================================= */
-
-function getCountryTierByRating(rating) {
-  const value = clamp(
-    Number(rating || 0),
-    1,
-    99
-  );
-
-  if (
-    value >= COUNTRY_TIERS.worldclass.min &&
-    value <= COUNTRY_TIERS.worldclass.max
-  ) {
-    return "worldclass";
-  }
-
-  if (
-    value >= COUNTRY_TIERS.elite.min &&
-    value <= COUNTRY_TIERS.elite.max
-  ) {
-    return "elite";
-  }
-
-  if (
-    value >= COUNTRY_TIERS.strong.min &&
-    value <= COUNTRY_TIERS.strong.max
-  ) {
-    return "strong";
-  }
-
-  if (
-    value >= COUNTRY_TIERS.competitive.min &&
-    value <= COUNTRY_TIERS.competitive.max
-  ) {
-    return "competitive";
-  }
-
-  return "developing";
-}
-
-function getCountryTier(country) {
-  if (!country) {
-    return "developing";
-  }
-
-  return getCountryTierByRating(country.rating);
-}
-
-/* =========================================================
-   COUNTRY STRENGTH
-   ========================================================= */
-
-function getCountryStrength(country) {
-  if (!country) {
-    return {
-      rating: 0,
-      attack: 0,
-      midfield: 0,
-      defense: 0,
-      tier: "developing"
-    };
-  }
-
-  return {
-    rating: Number(country.rating || 0),
-    attack: Number(country.attack || 0),
-    midfield: Number(country.midfield || 0),
-    defense: Number(country.defense || 0),
-    tier: getCountryTier(country)
-  };
-}
-
-/* =========================================================
-   COUNTRY RANKING
-   ========================================================= */
-
-function sortCountriesByRating(descending = true) {
-  return [...getCountryCollection()].sort((a, b) => {
-    return descending
-      ? b.rating - a.rating
-      : a.rating - b.rating;
-  });
-}
-
-function getTopCountries(limit = 10) {
-  return sortCountriesByRating(true)
-    .slice(0, Math.max(1, Number(limit)));
-}
-
-function getCountryRanking(limit = 0) {
-  const countries = sortCountriesByRating(true);
-
-  if (limit > 0) {
-    return countries.slice(0, limit);
-  }
-
-  return countries;
-}
-
-/* =========================================================
-   FIFA RANKING
-   ========================================================= */
-
-function setCountryFifaRanking(countryId, ranking) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  const oldRanking = country.fifaRanking;
-
-  country.fifaRanking = Math.max(
-    1,
-    Math.floor(Number(ranking) || 999)
-  );
-
-  country.updatedAt = new Date().toISOString();
-
-  touchGameState();
-
-  addCreatorLog(
-    "SET_COUNTRY_FIFA_RANKING",
-    countryId,
-    oldRanking,
-    country.fifaRanking
-  );
-
-  return true;
-}
-
-function sortCountriesByFifaRanking() {
-  return [...getCountryCollection()].sort(
-    (a, b) => a.fifaRanking - b.fifaRanking
-  );
-}
-
-/* =========================================================
-   NATIONAL TEAM
-   ========================================================= */
-
-function getNationalTeam(countryId) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return null;
-  }
-
-  return country.nationalTeam;
-}
-
-function setNationalTeamManager(countryId, manager) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  const oldManager = country.nationalTeam.manager;
-
-  country.nationalTeam.manager = String(manager || "");
-  country.updatedAt = new Date().toISOString();
-
-  touchGameState();
-
-  addCreatorLog(
-    "SET_NATIONAL_TEAM_MANAGER",
-    countryId,
-    oldManager,
-    country.nationalTeam.manager
-  );
-
-  return true;
-}
-
-function setNationalTeamCaptain(countryId, playerId) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  const oldCaptain = country.nationalTeam.captainId;
-
-  country.nationalTeam.captainId =
-    String(playerId || "");
-
-  touchGameState();
-
-  addCreatorLog(
-    "SET_NATIONAL_TEAM_CAPTAIN",
-    countryId,
-    oldCaptain,
-    country.nationalTeam.captainId
-  );
-
-  return true;
-}
-
-function addPlayerToNationalTeam(countryId, playerId) {
-  const country = getCountryById(countryId);
-
-  if (!country || !playerId) {
-    return false;
-  }
-
-  if (
-    country.nationalTeam.squad.includes(playerId)
-  ) {
-    return false;
-  }
-
-  country.nationalTeam.squad.push(playerId);
-
-  touchGameState();
-
-  return true;
-}
-
-function removePlayerFromNationalTeam(countryId, playerId) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  const index =
-    country.nationalTeam.squad.indexOf(playerId);
-
-  if (index === -1) {
-    return false;
-  }
-
-  country.nationalTeam.squad.splice(index, 1);
-
-  if (
-    country.nationalTeam.captainId === playerId
-  ) {
-    country.nationalTeam.captainId = "";
-  }
-
-  touchGameState();
-
-  return true;
-}
-
-function isPlayerInNationalTeam(countryId, playerId) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  return country.nationalTeam.squad.includes(
-    playerId
-  );
-}
-
-/* =========================================================
-   NATIONAL TEAM RECORDS
-   ========================================================= */
-
-function addNationalTeamCaps(countryId, amount = 1) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  country.nationalTeam.capsRecord +=
-    Math.max(0, Number(amount) || 0);
-
-  touchGameState();
-
-  return true;
-}
-
-function addNationalTeamGoals(countryId, amount = 1) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  country.nationalTeam.goalsRecord +=
-    Math.max(0, Number(amount) || 0);
-
-  touchGameState();
-
-  return true;
-}
-
-/* =========================================================
-   COUNTRY TROPHIES
-   ========================================================= */
-
-function addCountryTrophy(countryId, trophy) {
-  const country = getCountryById(countryId);
-
-  if (!country || !trophy) {
-    return false;
-  }
-
-  country.trophies.push(trophy);
-
-  country.nationalTeam.trophies.push(
-    trophy.id || trophy.name || createId("nt")
-  );
-
-  touchGameState();
-
-  return true;
-}
-
-function getCountryTrophies(countryId) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return [];
-  }
-
-  return country.trophies;
-}
-
-function getCountryTrophyCount(countryId) {
-  return getCountryTrophies(countryId).length;
-}
-
-/* =========================================================
-   COUNTRY UPDATE
-   ========================================================= */
-
-function updateCountry(countryId, changes = {}) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return {
-      success: false,
-      message: "Country not found.",
-      country: null
-    };
-  }
-
-  const oldData = deepClone(country);
-
-  const allowedFields = [
-    "name",
-    "shortName",
-    "code",
-    "continent",
-    "rating",
-    "attack",
-    "midfield",
-    "defense",
-    "fifaRanking",
-    "reputation",
-    "population",
-    "capital",
-    "flag",
-    "colors",
-    "active"
-  ];
-
-  allowedFields.forEach(field => {
-    if (
-      Object.prototype.hasOwnProperty.call(
-        changes,
-        field
-      )
-    ) {
-      country[field] = changes[field];
-    }
-  });
-
-  country.rating = clamp(
-    calculateCountryRating(country),
-    COUNTRY_CONFIG.minRating,
-    COUNTRY_CONFIG.maxRating
-  );
-
-  country.updatedAt = new Date().toISOString();
-
-  touchGameState();
-
-  addCreatorLog(
-    "UPDATE_COUNTRY",
-    countryId,
-    oldData,
-    country
-  );
-
-  return {
-    success: true,
-    message: "Country updated.",
-    country
-  };
-}
-
-/* =========================================================
-   COUNTRY BUDGET / REPUTATION
-   ========================================================= */
-
-function getCountryReputation(countryId) {
-  const country = getCountryById(countryId);
-
-  return country
-    ? Number(country.reputation || 0)
-    : 0;
-}
-
-function setCountryReputation(countryId, reputation) {
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return false;
-  }
-
-  const oldValue = country.reputation;
-
-  country.reputation = clamp(
-    Number(reputation) || 0,
-    0,
-    100
-  );
-
-  country.updatedAt = new Date().toISOString();
-
-  touchGameState();
-
-  addCreatorLog(
-    "SET_COUNTRY_REPUTATION",
-    countryId,
-    oldValue,
-    country.reputation
-  );
-
-  return true;
-}
-
-/* =========================================================
-   CREATOR WORLD EDITOR
-   ========================================================= */
-
-function creatorAddCountry(data = {}) {
-  if (!S.admin?.creatorMode) {
-    return {
-      success: false,
-      message: "Creator Mode required."
-    };
-  }
-
-  return addCountry(data);
-}
-
-function creatorEditCountry(countryId, changes = {}) {
-  if (!S.admin?.creatorMode) {
-    return {
-      success: false,
-      message: "Creator Mode required."
-    };
-  }
-
-  return updateCountry(countryId, changes);
-}
-
-function creatorRemoveCountry(countryId) {
-  if (!S.admin?.creatorMode) {
-    return {
-      success: false,
-      message: "Creator Mode required."
-    };
-  }
-
-  return removeCountry(countryId);
-}
-
-function creatorSetCountryRating(
-  countryId,
-  rating
-) {
-  if (!S.admin?.creatorMode) {
-    return {
-      success: false,
-      message: "Creator Mode required."
-    };
-  }
-
-  const country = getCountryById(countryId);
-
-  if (!country) {
-    return {
-      success: false,
-      message: "Country not found."
-    };
-  }
-
-  const oldRating = country.rating;
-
-  const value = clamp(
-    Number(rating) || 1,
-    1,
-    99
-  );
-
-  country.rating = value;
-
-  country.attack = value;
-  country.midfield = value;
-  country.defense = value;
-
-  country.updatedAt =
-    new Date().toISOString();
-
-  touchGameState();
-
-  addCreatorLog(
-    "CREATOR_SET_COUNTRY_RATING",
-    countryId,
-    oldRating,
-    value
-  );
-
-  return {
-    success: true,
-    message: "Country rating updated.",
-    country
-  };
-}
-
-/* =========================================================
-   VALIDATION
-   ========================================================= */
-
-function validateCountry(country) {
-  if (!country) {
-    return {
-      valid: false,
-      errors: ["Country is missing."]
-    };
-  }
-
-  const errors = [];
-
-  if (!country.id) {
-    errors.push("Country ID is missing.");
-  }
-
-  if (!country.name) {
-    errors.push("Country name is missing.");
-  }
-
-  if (!country.code) {
-    errors.push("Country code is missing.");
-  }
-
-  if (
-    country.rating < 1 ||
-    country.rating > 99
-  ) {
-    errors.push(
-      "Country rating must be between 1 and 99."
-    );
-  }
-
-  if (!Array.isArray(country.nationalTeam?.squad)) {
-    errors.push(
-      "National team squad must be an array."
-    );
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-}
-
-function validateCountryCollection() {
-  const countries = getCountryCollection();
-
-  return countries.map(country => ({
-    id: country.id,
-    name: country.name,
-    ...validateCountry(country)
-  }));
-}
-
-/* =========================================================
-   REPAIR
-   ========================================================= */
-
-function repairCountryData() {
-  const countries = getCountryCollection();
-
-  countries.forEach(country => {
-    if (!country.id) {
-      country.id = createId("country");
+    function getState() {
+        return window.S || null;
     }
 
-    if (!country.name) {
-      country.name = "Unknown Country";
+    function log() {
+        console.log("[COUNTRIES]", ...arguments);
     }
 
-    if (!country.shortName) {
-      country.shortName = country.name;
+    function warn() {
+        console.warn("[COUNTRIES]", ...arguments);
     }
 
-    if (!country.code) {
-      country.code = COUNTRY_CONFIG.defaultCode;
+    function uid(prefix) {
+        return (
+            prefix +
+            "_" +
+            Date.now().toString(36) +
+            "_" +
+            Math.random().toString(36).slice(2, 8)
+        );
     }
 
-    country.code = String(
-      country.code
-    ).toUpperCase();
-
-    country.rating = clamp(
-      Number(country.rating || 50),
-      1,
-      99
-    );
-
-    country.attack = clamp(
-      Number(country.attack || country.rating),
-      1,
-      99
-    );
-
-    country.midfield = clamp(
-      Number(country.midfield || country.rating),
-      1,
-      99
-    );
-
-    country.defense = clamp(
-      Number(country.defense || country.rating),
-      1,
-      99
-    );
-
-    if (
-      !country.nationalTeam ||
-      typeof country.nationalTeam !== "object"
-    ) {
-      country.nationalTeam = {};
+    function touchState() {
+        if (typeof window.touchGameState === "function") {
+            window.touchGameState();
+        } else if (typeof window.touchState === "function") {
+            window.touchState();
+        }
     }
 
-    if (
-      !Array.isArray(
-        country.nationalTeam.squad
-      )
-    ) {
-      country.nationalTeam.squad = [];
+    /* =========================================================
+       COUNTRY CONFIG
+       ========================================================= */
+
+    const COUNTRY_CONFIG = {
+        england: {
+            id: "country_england",
+            code: "ENG",
+            name: "England",
+            flag: "🏴",
+            continent: "Europe",
+            tier: "elite",
+            fifaRank: 4,
+            reputation: 92
+        },
+
+        france: {
+            id: "country_france",
+            code: "FRA",
+            name: "France",
+            flag: "🇫🇷",
+            continent: "Europe",
+            tier: "elite",
+            fifaRank: 2,
+            reputation: 95
+        },
+
+        spain: {
+            id: "country_spain",
+            code: "ESP",
+            name: "Spain",
+            flag: "🇪🇸",
+            continent: "Europe",
+            tier: "elite",
+            fifaRank: 1,
+            reputation: 94
+        },
+
+        germany: {
+            id: "country_germany",
+            code: "GER",
+            name: "Germany",
+            flag: "🇩🇪",
+            continent: "Europe",
+            tier: "elite",
+            fifaRank: 10,
+            reputation: 90
+        },
+
+        italy: {
+            id: "country_italy",
+            code: "ITA",
+            name: "Italy",
+            flag: "🇮🇹",
+            continent: "Europe",
+            tier: "elite",
+            fifaRank: 13,
+            reputation: 88
+        },
+
+        brazil: {
+            id: "country_brazil",
+            code: "BRA",
+            name: "Brazil",
+            flag: "🇧🇷",
+            continent: "South America",
+            tier: "elite",
+            fifaRank: 5,
+            reputation: 96
+        },
+
+        argentina: {
+            id: "country_argentina",
+            code: "ARG",
+            name: "Argentina",
+            flag: "🇦🇷",
+            continent: "South America",
+            tier: "elite",
+            fifaRank: 3,
+            reputation: 96
+        },
+
+        portugal: {
+            id: "country_portugal",
+            code: "POR",
+            name: "Portugal",
+            flag: "🇵🇹",
+            continent: "Europe",
+            tier: "high",
+            fifaRank: 6,
+            reputation: 91
+        },
+
+        netherlands: {
+            id: "country_netherlands",
+            code: "NED",
+            name: "Netherlands",
+            flag: "🇳🇱",
+            continent: "Europe",
+            tier: "high",
+            fifaRank: 7,
+            reputation: 89
+        },
+
+        indonesia: {
+            id: "country_indonesia",
+            code: "IDN",
+            name: "Indonesia",
+            flag: "🇮🇩",
+            continent: "Asia",
+            tier: "developing",
+            fifaRank: 130,
+            reputation: 70
+        }
+    };
+
+    const COUNTRY_TIERS = {
+        elite: {
+            label: "Elite",
+            reputation: 90
+        },
+
+        high: {
+            label: "High",
+            reputation: 80
+        },
+
+        developing: {
+            label: "Developing",
+            reputation: 65
+        }
+    };
+
+    /* =========================================================
+       COUNTRY FACTORY
+       ========================================================= */
+
+    function createCountry(data) {
+        data = data || {};
+
+        return {
+            id: data.id || uid("country"),
+
+            code: String(data.code || "UNK").toUpperCase(),
+
+            name: data.name || "Unknown Country",
+
+            flag: data.flag || "🌐",
+
+            continent: data.continent || "Unknown",
+
+            tier: data.tier || "developing",
+
+            fifaRank:
+                Number.isFinite(Number(data.fifaRank))
+                    ? Number(data.fifaRank)
+                    : 999,
+
+            reputation:
+                Number.isFinite(Number(data.reputation))
+                    ? Number(data.reputation)
+                    : 50,
+
+            nationalTeamId:
+                data.nationalTeamId || null,
+
+            clubs:
+                Array.isArray(data.clubs)
+                    ? data.clubs
+                    : [],
+
+            trophies:
+                Array.isArray(data.trophies)
+                    ? data.trophies
+                    : [],
+
+            playerCount:
+                Number.isFinite(Number(data.playerCount))
+                    ? Number(data.playerCount)
+                    : 0,
+
+            metadata: {
+                createdAt:
+                    data.metadata?.createdAt ||
+                    new Date().toISOString(),
+
+                updatedAt:
+                    data.metadata?.updatedAt ||
+                    new Date().toISOString()
+            }
+        };
     }
 
-    if (
-      !Array.isArray(
-        country.nationalTeam.trophies
-      )
-    ) {
-      country.nationalTeam.trophies = [];
+    /* =========================================================
+       DEFAULT COUNTRIES
+       ========================================================= */
+
+    function createDefaultCountries() {
+        return Object.keys(COUNTRY_CONFIG).map(function (key) {
+            return createCountry(COUNTRY_CONFIG[key]);
+        });
     }
 
-    if (
-      !Array.isArray(country.trophies)
-    ) {
-      country.trophies = [];
+    /* =========================================================
+       STATE ACCESS
+       ========================================================= */
+
+    function ensureWorld() {
+        const state = getState();
+
+        if (!state) {
+            warn("Global state S belum tersedia.");
+            return false;
+        }
+
+        if (!state.world) {
+            state.world = {};
+        }
+
+        if (!Array.isArray(state.world.countries)) {
+            state.world.countries = [];
+        }
+
+        return true;
     }
 
-    if (
-      !Array.isArray(country.achievements)
-    ) {
-      country.achievements = [];
+    function getCountries() {
+        if (!ensureWorld()) {
+            return [];
+        }
+
+        return getState().world.countries;
     }
 
-    if (!country.colors) {
-      country.colors = {
-        primary: "#1f2937",
-        secondary: "#ffffff"
-      };
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
+
+    function initializeCountrySystem() {
+        if (!ensureWorld()) {
+            return false;
+        }
+
+        const state = getState();
+
+        if (state.world.countries.length === 0) {
+            state.world.countries = createDefaultCountries();
+
+            if (!state.world.activeCountry) {
+                state.world.activeCountry = "IDN";
+            }
+
+            touchState();
+
+            log(
+                "Default country database created:",
+                state.world.countries.length
+            );
+        }
+
+        repairCountryData();
+
+        return true;
     }
 
-    country.updatedAt =
-      new Date().toISOString();
-  });
+    /* =========================================================
+       REPAIR
+       ========================================================= */
 
-  touchGameState();
+    function repairCountryData() {
+        if (!ensureWorld()) {
+            return false;
+        }
 
-  return countries;
-}
+        const countries = getCountries();
 
-/* =========================================================
-   DEFAULT COUNTRY DATABASE
-   ========================================================= */
+        countries.forEach(function (country) {
+            if (!country.id) {
+                country.id = uid("country");
+            }
 
-function createDefaultCountries() {
-  return [
-    createCountry({
-      id: "country_england",
-      name: "England",
-      shortName: "England",
-      code: "ENG",
-      continent: "Europe",
-      rating: 88,
-      attack: 89,
-      midfield: 88,
-      defense: 87,
-      fifaRanking: 4,
-      reputation: 95,
-      capital: "London"
-    }),
+            if (!country.code) {
+                country.code = "UNK";
+            }
 
-    createCountry({
-      id: "country_france",
-      name: "France",
-      shortName: "France",
-      code: "FRA",
-      continent: "Europe",
-      rating: 91,
-      attack: 93,
-      midfield: 90,
-      defense: 90,
-      fifaRanking: 2,
-      reputation: 98,
-      capital: "Paris"
-    }),
+            country.code = String(country.code).toUpperCase();
 
-    createCountry({
-      id: "country_spain",
-      name: "Spain",
-      shortName: "Spain",
-      code: "ESP",
-      continent: "Europe",
-      rating: 89,
-      attack: 88,
-      midfield: 92,
-      defense: 87,
-      fifaRanking: 1,
-      reputation: 96,
-      capital: "Madrid"
-    }),
+            if (!country.name) {
+                country.name = "Unknown Country";
+            }
 
-    createCountry({
-      id: "country_germany",
-      name: "Germany",
-      shortName: "Germany",
-      code: "GER",
-      continent: "Europe",
-      rating: 87,
-      attack: 86,
-      midfield: 88,
-      defense: 87,
-      fifaRanking: 8,
-      reputation: 94,
-      capital: "Berlin"
-    }),
+            if (!country.flag) {
+                country.flag = "🌐";
+            }
 
-    createCountry({
-      id: "country_italy",
-      name: "Italy",
-      shortName: "Italy",
-      code: "ITA",
-      continent: "Europe",
-      rating: 86,
-      attack: 84,
-      midfield: 87,
-      defense: 88,
-      fifaRanking: 9,
-      reputation: 94,
-      capital: "Rome"
-    }),
+            if (!country.continent) {
+                country.continent = "Unknown";
+            }
 
-    createCountry({
-      id: "country_brazil",
-      name: "Brazil",
-      shortName: "Brazil",
-      code: "BRA",
-      continent: "South America",
-      rating: 92,
-      attack: 95,
-      midfield: 91,
-      defense: 90,
-      fifaRanking: 3,
-      reputation: 100,
-      capital: "Brasilia"
-    }),
+            if (!country.tier) {
+                country.tier = "developing";
+            }
 
-    createCountry({
-      id: "country_argentina",
-      name: "Argentina",
-      shortName: "Argentina",
-      code: "ARG",
-      continent: "South America",
-      rating: 92,
-      attack: 94,
-      midfield: 92,
-      defense: 90,
-      fifaRanking: 5,
-      reputation: 99,
-      capital: "Buenos Aires"
-    }),
+            if (!Array.isArray(country.clubs)) {
+                country.clubs = [];
+            }
 
-    createCountry({
-      id: "country_portugal",
-      name: "Portugal",
-      shortName: "Portugal",
-      code: "POR",
-      continent: "Europe",
-      rating: 88,
-      attack: 91,
-      midfield: 87,
-      defense: 85,
-      fifaRanking: 6,
-      reputation: 95,
-      capital: "Lisbon"
-    }),
+            if (!Array.isArray(country.trophies)) {
+                country.trophies = [];
+            }
 
-    createCountry({
-      id: "country_netherlands",
-      name: "Netherlands",
-      shortName: "Netherlands",
-      code: "NED",
-      continent: "Europe",
-      rating: 86,
-      attack: 86,
-      midfield: 87,
-      defense: 85,
-      fifaRanking: 7,
-      reputation: 92,
-      capital: "Amsterdam"
-    }),
+            if (!Number.isFinite(Number(country.fifaRank))) {
+                country.fifaRank = 999;
+            }
 
-    createCountry({
-      id: "country_indonesia",
-      name: "Indonesia",
-      shortName: "Indonesia",
-      code: "IDN",
-      continent: "Asia",
-      rating: 62,
-      attack: 64,
-      midfield: 61,
-      defense: 61,
-      fifaRanking: 130,
-      reputation: 70,
-      capital: "Jakarta"
-    })
-  ];
-}
+            if (!Number.isFinite(Number(country.reputation))) {
+                country.reputation = 50;
+            }
 
-/* =========================================================
-   INITIALIZE
-   ========================================================= */
+            if (!Number.isFinite(Number(country.playerCount))) {
+                country.playerCount = 0;
+            }
 
-function initializeCountrySystem() {
-  if (!S.world) {
-    console.warn(
-      "[COUNTRIES] World state missing."
+            if (!country.metadata) {
+                country.metadata = {};
+            }
+
+            if (!country.metadata.createdAt) {
+                country.metadata.createdAt =
+                    new Date().toISOString();
+            }
+
+            country.metadata.updatedAt =
+                new Date().toISOString();
+        });
+
+        return true;
+    }
+
+    /* =========================================================
+       FIND
+       ========================================================= */
+
+    function getCountryById(id) {
+        if (!id) return null;
+
+        return (
+            getCountries().find(function (country) {
+                return country.id === id;
+            }) || null
+        );
+    }
+
+    function getCountryByCode(code) {
+        if (!code) return null;
+
+        const normalized = String(code).toUpperCase();
+
+        return (
+            getCountries().find(function (country) {
+                return country.code === normalized;
+            }) || null
+        );
+    }
+
+    function getCountryByName(name) {
+        if (!name) return null;
+
+        const normalized = String(name)
+            .trim()
+            .toLowerCase();
+
+        return (
+            getCountries().find(function (country) {
+                return (
+                    String(country.name)
+                        .trim()
+                        .toLowerCase() === normalized
+                );
+            }) || null
+        );
+    }
+
+    function getCountry(value) {
+        if (!value) return null;
+
+        return (
+            getCountryById(value) ||
+            getCountryByCode(value) ||
+            getCountryByName(value)
+        );
+    }
+
+    /* =========================================================
+       SEARCH
+       ========================================================= */
+
+    function searchCountries(query) {
+        const countries = getCountries();
+
+        if (!query) {
+            return countries.slice();
+        }
+
+        const q = String(query)
+            .trim()
+            .toLowerCase();
+
+        return countries.filter(function (country) {
+            return (
+                String(country.name)
+                    .toLowerCase()
+                    .includes(q) ||
+
+                String(country.code)
+                    .toLowerCase()
+                    .includes(q) ||
+
+                String(country.continent)
+                    .toLowerCase()
+                    .includes(q)
+            );
+        });
+    }
+
+    /* =========================================================
+       CONTINENT
+       ========================================================= */
+
+    function getCountriesByContinent(continent) {
+        if (!continent) return [];
+
+        return getCountries().filter(function (country) {
+            return (
+                String(country.continent).toLowerCase() ===
+                String(continent).toLowerCase()
+            );
+        });
+    }
+
+    /* =========================================================
+       TIER
+       ========================================================= */
+
+    function getCountriesByTier(tier) {
+        if (!tier) return [];
+
+        return getCountries().filter(function (country) {
+            return country.tier === tier;
+        });
+    }
+
+    function getTierInfo(tier) {
+        return COUNTRY_TIERS[tier] || COUNTRY_TIERS.developing;
+    }
+
+    /* =========================================================
+       FIFA RANKING
+       ========================================================= */
+
+    function getFIFARanking() {
+        return getCountries()
+            .slice()
+            .sort(function (a, b) {
+                return (
+                    Number(a.fifaRank) -
+                    Number(b.fifaRank)
+                );
+            });
+    }
+
+    function updateFIFARank(codeOrId, rank) {
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            warn("Country tidak ditemukan:", codeOrId);
+            return null;
+        }
+
+        country.fifaRank = Math.max(
+            1,
+            Number(rank) || 999
+        );
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return country;
+    }
+
+    /* =========================================================
+       REPUTATION
+       ========================================================= */
+
+    function updateReputation(codeOrId, reputation) {
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            warn("Country tidak ditemukan:", codeOrId);
+            return null;
+        }
+
+        country.reputation = Math.max(
+            0,
+            Math.min(100, Number(reputation) || 0)
+        );
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return country;
+    }
+
+    /* =========================================================
+       CLUB RELATION
+       ========================================================= */
+
+    function addClubToCountry(codeOrId, clubId) {
+        const country = getCountry(codeOrId);
+
+        if (!country || !clubId) {
+            return false;
+        }
+
+        if (!country.clubs.includes(clubId)) {
+            country.clubs.push(clubId);
+            country.metadata.updatedAt =
+                new Date().toISOString();
+
+            touchState();
+        }
+
+        return true;
+    }
+
+    function removeClubFromCountry(codeOrId, clubId) {
+        const country = getCountry(codeOrId);
+
+        if (!country || !clubId) {
+            return false;
+        }
+
+        country.clubs = country.clubs.filter(function (id) {
+            return id !== clubId;
+        });
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return true;
+    }
+
+    /* =========================================================
+       PLAYER COUNT
+       ========================================================= */
+
+    function updatePlayerCount(codeOrId, amount) {
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            return false;
+        }
+
+        country.playerCount = Math.max(
+            0,
+            Number(amount) || 0
+        );
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return true;
+    }
+
+    /* =========================================================
+       NATIONAL TEAM
+       ========================================================= */
+
+    function setNationalTeam(codeOrId, teamId) {
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            return null;
+        }
+
+        country.nationalTeamId = teamId || null;
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return country;
+    }
+
+    function getNationalTeam(codeOrId) {
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            return null;
+        }
+
+        return country.nationalTeamId || null;
+    }
+
+    /* =========================================================
+       TROPHIES
+       ========================================================= */
+
+    function addCountryTrophy(codeOrId, trophy) {
+        const country = getCountry(codeOrId);
+
+        if (!country || !trophy) {
+            return false;
+        }
+
+        country.trophies.push(trophy);
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return true;
+    }
+
+    function getCountryTrophies(codeOrId) {
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            return [];
+        }
+
+        return country.trophies;
+    }
+
+    /* =========================================================
+       ACTIVE COUNTRY
+       ========================================================= */
+
+    function setActiveCountry(codeOrId) {
+        if (!ensureWorld()) {
+            return false;
+        }
+
+        const country = getCountry(codeOrId);
+
+        if (!country) {
+            warn("Tidak bisa set active country:", codeOrId);
+            return false;
+        }
+
+        getState().world.activeCountry = country.code;
+
+        touchState();
+
+        return true;
+    }
+
+    function getActiveCountry() {
+        if (!ensureWorld()) {
+            return null;
+        }
+
+        const active =
+            getState().world.activeCountry;
+
+        return getCountry(active);
+    }
+
+    /* =========================================================
+       CREATOR FUNCTIONS
+       ========================================================= */
+
+    function addCountry(data) {
+        if (!ensureWorld()) {
+            return null;
+        }
+
+        const country = createCountry(data);
+
+        const duplicate = getCountries().some(
+            function (existing) {
+                return (
+                    existing.code === country.code ||
+                    existing.name.toLowerCase() ===
+                        country.name.toLowerCase()
+                );
+            }
+        );
+
+        if (duplicate) {
+            warn(
+                "Country duplicate:",
+                country.name,
+                country.code
+            );
+
+            return null;
+        }
+
+        getCountries().push(country);
+
+        touchState();
+
+        log("Country added:", country.name);
+
+        return country;
+    }
+
+    function updateCountry(codeOrId, updates) {
+        const country = getCountry(codeOrId);
+
+        if (!country || !updates) {
+            return null;
+        }
+
+        Object.keys(updates).forEach(function (key) {
+            if (key === "id") return;
+
+            country[key] = updates[key];
+        });
+
+        country.metadata =
+            country.metadata || {};
+
+        country.metadata.updatedAt =
+            new Date().toISOString();
+
+        touchState();
+
+        return country;
+    }
+
+    function deleteCountry(codeOrId) {
+        if (!ensureWorld()) {
+            return false;
+        }
+
+        const countries = getCountries();
+
+        const index = countries.findIndex(
+            function (country) {
+                return (
+                    country.id === codeOrId ||
+                    country.code ===
+                        String(codeOrId).toUpperCase()
+                );
+            }
+        );
+
+        if (index === -1) {
+            return false;
+        }
+
+        const removed = countries.splice(index, 1)[0];
+
+        if (
+            getState().world.activeCountry ===
+            removed.code
+        ) {
+            getState().world.activeCountry = null;
+        }
+
+        touchState();
+
+        log("Country deleted:", removed.name);
+
+        return true;
+    }
+
+    /* =========================================================
+       VALIDATION
+       ========================================================= */
+
+    function validateCountries() {
+        const countries = getCountries();
+
+        const ids = new Set();
+        const codes = new Set();
+
+        const errors = [];
+
+        countries.forEach(function (country) {
+            if (!country.id) {
+                errors.push("Missing country ID");
+            }
+
+            if (!country.code) {
+                errors.push(
+                    "Missing country code: " +
+                    country.name
+                );
+            }
+
+            if (ids.has(country.id)) {
+                errors.push(
+                    "Duplicate country ID: " +
+                    country.id
+                );
+            }
+
+            if (codes.has(country.code)) {
+                errors.push(
+                    "Duplicate country code: " +
+                    country.code
+                );
+            }
+
+            ids.add(country.id);
+            codes.add(country.code);
+        });
+
+        return {
+            valid: errors.length === 0,
+            count: countries.length,
+            errors: errors
+        };
+    }
+
+    /* =========================================================
+       DEBUG
+       ========================================================= */
+
+    function debug() {
+        const countries = getCountries();
+
+        console.table(
+            countries.map(function (country) {
+                return {
+                    ID: country.id,
+                    Code: country.code,
+                    Country: country.name,
+                    Flag: country.flag,
+                    Continent: country.continent,
+                    Tier: country.tier,
+                    FIFA: country.fifaRank,
+                    Reputation: country.reputation
+                };
+            })
+        );
+
+        return countries;
+    }
+
+    /* =========================================================
+       PUBLIC API
+       ========================================================= */
+
+    window.RVCountries = {
+        VERSION: VERSION,
+
+        COUNTRY_CONFIG: COUNTRY_CONFIG,
+        COUNTRY_TIERS: COUNTRY_TIERS,
+
+        createCountry:
+            createCountry,
+
+        createDefaultCountries:
+            createDefaultCountries,
+
+        initialize:
+            initializeCountrySystem,
+
+        repair:
+            repairCountryData,
+
+        getAll:
+            getCountries,
+
+        getById:
+            getCountryById,
+
+        getByCode:
+            getCountryByCode,
+
+        getByName:
+            getCountryByName,
+
+        get:
+            getCountry,
+
+        search:
+            searchCountries,
+
+        byContinent:
+            getCountriesByContinent,
+
+        byTier:
+            getCountriesByTier,
+
+        getTierInfo:
+            getTierInfo,
+
+        fifaRanking:
+            getFIFARanking,
+
+        updateFIFARank:
+            updateFIFARank,
+
+        updateReputation:
+            updateReputation,
+
+        addClub:
+            addClubToCountry,
+
+        removeClub:
+            removeClubFromCountry,
+
+        updatePlayerCount:
+            updatePlayerCount,
+
+        setNationalTeam:
+            setNationalTeam,
+
+        getNationalTeam:
+            getNationalTeam,
+
+        addTrophy:
+            addCountryTrophy,
+
+        getTrophies:
+            getCountryTrophies,
+
+        setActive:
+            setActiveCountry,
+
+        getActive:
+            getActiveCountry,
+
+        add:
+            addCountry,
+
+        update:
+            updateCountry,
+
+        remove:
+            deleteCountry,
+
+        validate:
+            validateCountries,
+
+        debug:
+            debug
+    };
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+
+    if (getState()) {
+        initializeCountrySystem();
+    } else {
+        window.addEventListener(
+            "load",
+            function () {
+                initializeCountrySystem();
+            },
+            { once: true }
+        );
+    }
+
+    log(
+        "RV SPORTS: FC CUP 26 Country System loaded."
     );
 
-    return false;
-  }
+    log(
+        "[COUNTRIES] Version:",
+        VERSION
+    );
 
-  if (!Array.isArray(S.world.countries)) {
-    S.world.countries = [];
-  }
-
-  repairCountryData();
-
-  /*
-   * Only populate defaults when the world
-   * has no countries yet.
-   */
-  if (S.world.countries.length === 0) {
-    S.world.countries =
-      createDefaultCountries();
-
-    touchGameState();
-  }
-
-  return true;
-}
-
-const COUNTRY_SYSTEM_READY =
-  initializeCountrySystem();
-
-console.log(
-  `[COUNTRIES] ${GAME_NAME} country system ready.`
-);
+    log(
+        "[COUNTRIES] Available:",
+        getCountries().length,
+        "countries"
+    );
+})();
