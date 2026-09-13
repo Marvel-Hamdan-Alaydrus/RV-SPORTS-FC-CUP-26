@@ -1987,3 +1987,21 @@ select {
 
 }
 ```
+/* =========================================================
+   27. COUNTRY SELECT FIX
+   ========================================================= */
+
+#character-country {
+    color: #ffffff;
+    background-color: #20242d;
+}
+
+#character-country option {
+    color: #111827;
+    background-color: #ffffff;
+}
+
+#character-country option:checked {
+    color: #ffffff;
+    background-color: #2563eb;
+}
