@@ -1,0 +1,236 @@
+/* =========================================================
+   RV SPORTS: FC CUP 26
+   MODAL SYSTEM
+   ========================================================= */
+
+.modal[aria-hidden="true"] {
+    display: none !important;
+}
+
+.modal {
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    animation: modalSlideIn 0.22s ease-out;
+}
+
+.modal-header {
+    padding-right: 40px;
+    margin-bottom: 18px;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.modal-header p {
+    margin-top: 6px;
+
+    font-size: 10px;
+
+    line-height: 1.5;
+
+    opacity: 0.4;
+}
+
+.modal-footer {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+.modal-footer button {
+    flex: 1;
+}
+
+.modal-actions {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    flex: 1;
+}
+
+
+/* Modal form */
+
+.modal-form-group {
+    margin-bottom: 15px;
+}
+
+.modal-form-group label {
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-size: 9px;
+
+    font-weight: 850;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    opacity: 0.45;
+}
+
+.modal-form-group input,
+.modal-form-group select,
+.modal-form-group textarea {
+    width: 100%;
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+    border-radius: 11px;
+
+    background:
+        rgba(255,255,255,0.045);
+
+    color: #ffffff;
+
+    outline: none;
+}
+
+.modal-form-group input,
+.modal-form-group select {
+    height: 46px;
+
+    padding: 0 13px;
+}
+
+.modal-form-group textarea {
+    min-height: 100px;
+
+    padding: 12px;
+
+    resize: vertical;
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus,
+.modal-form-group textarea:focus {
+    border-color:
+        rgba(255,255,255,0.3);
+
+    background:
+        rgba(255,255,255,0.07);
+}
+
+
+/* Confirmation */
+
+.modal-confirm {
+    text-align: center;
+}
+
+.modal-confirm-icon {
+    width: 55px;
+    height: 55px;
+
+    margin: 0 auto 15px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 17px;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    font-size: 20px;
+}
+
+.modal-confirm h3 {
+    font-size: 17px;
+}
+
+.modal-confirm p {
+    margin-top: 7px;
+
+    font-size: 10px;
+
+    line-height: 1.6;
+
+    opacity: 0.45;
+}
+
+
+/* Scrollbar */
+
+.modal-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.15);
+}
+
+
+@keyframes modalFadeIn {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+
+}
+
+
+@keyframes modalSlideIn {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateY(15px)
+            scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+
+
+@media (max-width: 500px) {
+
+    .modal {
+        padding: 12px;
+    }
+
+    .modal-content {
+        padding: 20px;
+        max-height: 92vh;
+    }
+
+    .modal-footer,
+    .modal-actions {
+        flex-direction: column;
+    }
+
+}
