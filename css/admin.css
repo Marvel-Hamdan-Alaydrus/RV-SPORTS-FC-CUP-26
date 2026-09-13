@@ -1,0 +1,283 @@
+/* =========================================================
+   RV SPORTS: FC CUP 26
+   CREATOR / ADMIN STYLES
+   ========================================================= */
+
+.creator-screen {
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(169,140,255,0.06),
+            transparent 35%
+        );
+}
+
+
+/* Creator editor */
+
+.creator-editor {
+    overflow: hidden;
+}
+
+.creator-editor-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.creator-editor-header h3 {
+    font-size: 15px;
+
+    font-weight: 900;
+}
+
+.creator-editor-header span {
+    font-size: 9px;
+
+    opacity: 0.35;
+}
+
+
+/* Admin form */
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+
+    gap: 13px;
+}
+
+.admin-field {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+}
+
+.admin-field label {
+    font-size: 9px;
+
+    font-weight: 850;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    opacity: 0.45;
+}
+
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+    width: 100%;
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+    border-radius: 11px;
+
+    background:
+        rgba(255,255,255,0.04);
+
+    color: #ffffff;
+
+    outline: none;
+}
+
+.admin-field input,
+.admin-field select {
+    height: 45px;
+
+    padding: 0 12px;
+}
+
+.admin-field textarea {
+    min-height: 100px;
+
+    padding: 12px;
+
+    resize: vertical;
+}
+
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus {
+    border-color:
+        rgba(169,140,255,0.45);
+
+    background:
+        rgba(169,140,255,0.05);
+}
+
+
+/* Admin buttons */
+
+.admin-button-row {
+    display: flex;
+
+    gap: 9px;
+
+    margin-top: 7px;
+}
+
+.admin-button {
+    min-height: 43px;
+
+    padding: 0 15px;
+
+    border-radius: 11px;
+
+    background:
+        rgba(255,255,255,0.06);
+
+    color: #ffffff;
+
+    font-size: 10px;
+
+    font-weight: 850;
+
+    transition:
+        transform 0.18s ease,
+        background 0.18s ease;
+}
+
+.admin-button:hover {
+    transform: translateY(-1px);
+
+    background:
+        rgba(255,255,255,0.1);
+}
+
+.admin-button.primary {
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff,
+            #dfe4ff
+        );
+
+    color: #080b12;
+}
+
+.admin-button.danger {
+    background:
+        rgba(255,80,80,0.1);
+
+    color: #ffaaaa;
+
+    border:
+        1px solid rgba(255,80,80,0.15);
+}
+
+
+/* Admin status */
+
+.admin-status {
+    padding: 11px 13px;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    font-size: 9px;
+
+    line-height: 1.5;
+}
+
+.admin-status.success {
+    border:
+        1px solid rgba(100,255,170,0.12);
+}
+
+.admin-status.warning {
+    border:
+        1px solid rgba(255,200,80,0.12);
+}
+
+.admin-status.error {
+    border:
+        1px solid rgba(255,80,80,0.12);
+}
+
+
+/* Creator log items */
+
+.creator-log-item {
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    background:
+        rgba(255,255,255,0.025);
+
+    border:
+        1px solid rgba(255,255,255,0.045);
+}
+
+.creator-log-item strong {
+    display: block;
+
+    font-size: 9px;
+}
+
+.creator-log-item span {
+    display: block;
+
+    margin-top: 3px;
+
+    font-size: 8px;
+
+    opacity: 0.35;
+}
+
+
+/* God mode */
+
+.god-mode-panel {
+    padding: 17px;
+
+    border-radius: 15px;
+
+    border:
+        1px solid rgba(169,140,255,0.15);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(169,140,255,0.08),
+            rgba(255,255,255,0.02)
+        );
+}
+
+.god-mode-panel h4 {
+    font-size: 13px;
+}
+
+.god-mode-panel p {
+    margin-top: 5px;
+
+    font-size: 9px;
+
+    line-height: 1.5;
+
+    opacity: 0.4;
+}
+
+
+/* Responsive */
+
+@media (max-width: 500px) {
+
+    .admin-button-row {
+        flex-direction: column;
+    }
+
+    .admin-button {
+        width: 100%;
+    }
+
+}
