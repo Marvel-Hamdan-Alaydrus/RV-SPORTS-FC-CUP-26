@@ -147,46 +147,65 @@ Version: 1.0.0
         return true;
     }
 
-    function renderPhoto(player, prefix) {
-        const image = $(prefix + "-player-photo");
-        const placeholder = $(prefix + "-player-placeholder");
+function renderPhoto(player, prefix) {
+    let imageId;
+    let placeholderId;
 
-        if (!image) {
-            warn("Image element tidak ditemukan:", prefix + "-player-photo");
-            return;
-        }
-
-        const photo = getPhoto(player);
-
-        if (photo) {
-            image.src = photo;
-            image.alt = getPlayerName(player);
-
-            image.classList.remove("hidden");
-
-            if (placeholder) {
-                placeholder.classList.add("hidden");
-            }
-
-            image.onerror = function () {
-                image.classList.add("hidden");
-
-                if (placeholder) {
-                    placeholder.classList.remove("hidden");
-                }
-            };
-
-            return;
-        }
-
-        image.removeAttribute("src");
-        image.classList.add("hidden");
-
-        if (placeholder) {
-            placeholder.classList.remove("hidden");
-        }
+    /*
+     * Character card:
+     * card-player-photo
+     * card-player-placeholder
+     *
+     * Dashboard card:
+     * dashboard-player-photo
+     * dashboard-player-placeholder
+     */
+    if (prefix === "dashboard-card") {
+        imageId = "dashboard-player-photo";
+        placeholderId = "dashboard-player-placeholder";
+    } else {
+        imageId = prefix + "-player-photo";
+        placeholderId = prefix + "-player-placeholder";
     }
 
+    const image = $(imageId);
+    const placeholder = $(placeholderId);
+
+    if (!image) {
+        warn("Image element tidak ditemukan:", imageId);
+        return;
+    }
+
+    const photo = getPhoto(player);
+
+    if (photo) {
+        image.src = photo;
+        image.alt = getPlayerName(player);
+
+        image.classList.remove("hidden");
+
+        if (placeholder) {
+            placeholder.classList.add("hidden");
+        }
+
+        image.onerror = function () {
+            image.classList.add("hidden");
+
+            if (placeholder) {
+                placeholder.classList.remove("hidden");
+            }
+        };
+
+        return;
+    }
+
+    image.removeAttribute("src");
+    image.classList.add("hidden");
+
+    if (placeholder) {
+        placeholder.classList.remove("hidden");
+    }
+}
     function renderStats(player, prefix) {
         setText(prefix + "-pac", getStatValue(player, "pac"));
         setText(prefix + "-sho", getStatValue(player, "sho"));
