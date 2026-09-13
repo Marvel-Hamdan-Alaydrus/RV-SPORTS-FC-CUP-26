@@ -1,0 +1,288 @@
+/* =========================================================
+   RV SPORTS: FC CUP 26
+   PLAYER CARDS
+   Version 2.1.0
+   ========================================================= */
+
+
+/* =========================================================
+   01. CARD BASE
+   ========================================================= */
+
+.player-card,
+.dashboard-player-card .player-card {
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   02. CARD SHINE
+   ========================================================= */
+
+.player-card::after {
+    content: "";
+
+    position: absolute;
+
+    top: -120%;
+    left: -80%;
+
+    width: 60%;
+    height: 300%;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.08),
+            transparent
+        );
+
+    transform: rotate(18deg);
+
+    transition:
+        left 0.8s ease;
+}
+
+.player-card:hover::after {
+    left: 130%;
+}
+
+
+/* =========================================================
+   03. CARD RATING
+   ========================================================= */
+
+.player-card .card-ovr {
+    position: relative;
+    z-index: 3;
+
+    font-variant-numeric: tabular-nums;
+}
+
+.player-card .card-position {
+    position: relative;
+    z-index: 3;
+}
+
+
+/* =========================================================
+   04. CARD COUNTRY
+   ========================================================= */
+
+.player-card .card-country {
+    position: relative;
+    z-index: 3;
+
+    display: flex;
+    align-items: center;
+
+    gap: 5px;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   05. PLAYER IMAGE
+   ========================================================= */
+
+.player-card-image {
+    overflow: hidden;
+}
+
+.player-card-image img {
+    max-width: 100%;
+    max-height: 100%;
+
+    object-position: center bottom;
+
+    filter:
+        drop-shadow(
+            0 12px 18px rgba(0,0,0,0.4)
+        );
+
+    transition:
+        transform 0.35s ease,
+        filter 0.35s ease;
+}
+
+.player-card:hover .player-card-image img {
+    transform: scale(1.025);
+
+    filter:
+        drop-shadow(
+            0 16px 25px rgba(0,0,0,0.5)
+        );
+}
+
+
+/* =========================================================
+   06. PLAYER PLACEHOLDER
+   ========================================================= */
+
+.player-placeholder {
+    position: relative;
+
+    overflow: hidden;
+
+    user-select: none;
+}
+
+.player-placeholder::before {
+    content: "";
+
+    position: absolute;
+
+    width: 65px;
+    height: 65px;
+
+    top: 20px;
+
+    border-radius: 50%;
+
+    background:
+        rgba(255,255,255,0.055);
+}
+
+.player-placeholder::after {
+    content: "";
+
+    position: absolute;
+
+    width: 90px;
+    height: 85px;
+
+    bottom: 0;
+
+    border-radius:
+        45px 45px 20px 20px;
+
+    background:
+        rgba(255,255,255,0.04);
+}
+
+
+/* =========================================================
+   07. CARD NAME
+   ========================================================= */
+
+.player-card-name span {
+    display: block;
+
+    max-width: 100%;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   08. CARD STATS
+   ========================================================= */
+
+.player-card-stats .card-stat {
+    min-width: 0;
+
+    transition:
+        transform 0.2s ease;
+}
+
+.player-card:hover
+.player-card-stats .card-stat {
+    transform: translateY(-1px);
+}
+
+.card-stat .stat-value {
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================================================
+   09. OVR TIER EFFECTS
+   ========================================================= */
+
+.player-card.ovr-bronze .card-ovr {
+    text-shadow:
+        0 0 18px rgba(166,106,63,0.3);
+}
+
+.player-card.ovr-silver .card-ovr {
+    text-shadow:
+        0 0 18px rgba(174,184,199,0.3);
+}
+
+.player-card.ovr-gold .card-ovr {
+    text-shadow:
+        0 0 20px rgba(215,182,90,0.35);
+}
+
+.player-card.ovr-elite .card-ovr {
+    text-shadow:
+        0 0 22px rgba(169,140,255,0.4);
+}
+
+.player-card.ovr-worldclass .card-ovr {
+    text-shadow:
+        0 0 25px rgba(118,217,255,0.45);
+}
+
+.player-card.ovr-icon .card-ovr {
+    text-shadow:
+        0 0 28px rgba(247,231,165,0.5);
+}
+
+
+/* =========================================================
+   10. DASHBOARD CARD
+   ========================================================= */
+
+.dashboard-player-card .player-card {
+    width: 300px;
+}
+
+.dashboard-player-card .player-card:hover {
+    transform: translateY(-3px);
+}
+
+
+/* =========================================================
+   11. CARD RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    .dashboard-player-card .player-card {
+        width: 275px;
+    }
+
+    .player-card-name span {
+        font-size: 20px;
+    }
+
+}
+
+
+/* =========================================================
+   12. REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .player-card::after {
+        display: none;
+    }
+
+    .player-card,
+    .player-card-image img,
+    .player-card-stats .card-stat {
+        transition: none !important;
+    }
+
+}
