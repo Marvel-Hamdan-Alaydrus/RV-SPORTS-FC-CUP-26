@@ -1,11 +1,19 @@
+/* =========================================================
+   RV SPORTS: FC CUP 26
+   MAIN APPLICATION
+   File: js/app.js
+   Version: 2.1.0
+   ========================================================= */
+
 (function () {
     "use strict";
 
-    const APP_VERSION = "2.0.0";
+    const APP_VERSION = "2.1.0";
 
     const AppState = {
         booted: false,
-        starting: false
+        starting: false,
+        characterReady: false
     };
 
     let selectedPosition = "ST";
@@ -26,7 +34,7 @@
     };
 
     /* =========================================================
-       BASIC HELPERS
+       HELPER
     ========================================================= */
 
     function $(id) {
@@ -34,11 +42,115 @@
     }
 
     function log() {
-        console.log.apply(console, ["[APP]"].concat(Array.from(arguments)));
+        console.log(
+            "[APP]",
+            ...Array.from(arguments)
+        );
     }
 
     function warn() {
-        console.warn.apply(console, ["[APP]"].concat(Array.from(arguments)));
+        console.warn(
+            "[APP]",
+            ...Array.from(arguments)
+        );
+    }
+
+    function getState() {
+        return window.S || null;
+    }
+
+    function getPlayer() {
+        const S = getState();
+
+        if (!S) {
+            return null;
+        }
+
+        if (!S.player) {
+            S.player = {};
+        }
+
+        return S.player;
+    }
+
+    function getPlayerStats() {
+        const player = getPlayer();
+
+        if (!player) {
+            return {};
+        }
+
+        if (!player.stats) {
+            player.stats = {};
+        }
+
+        return player.stats;
+    }
+
+    function getAccount() {
+        const S = getState();
+
+        if (!S) {
+            return null;
+        }
+
+        if (!S.account) {
+            S.account = {
+                email: "",
+                name: "",
+                created: false
+            };
+        }
+
+        return S.account;
+    }
+
+    function touchState() {
+        if (
+            typeof window.touchState === "function"
+        ) {
+            window.touchState();
+        }
+    }
+
+    function saveGame() {
+        if (
+            typeof window.saveGame !== "function"
+        ) {
+            warn(
+                "saveGame() belum tersedia."
+            );
+
+            return false;
+        }
+
+        try {
+            return window.saveGame();
+        } catch (error) {
+            console.error(
+                "[APP] Save failed:",
+                error
+            );
+
+            return false;
+        }
+    }
+
+    function navigate(route) {
+        if (
+            window.Router &&
+            typeof window.Router.navigate === "function"
+        ) {
+            window.Router.navigate(route);
+            return true;
+        }
+
+        warn(
+            "Router belum tersedia:",
+            route
+        );
+
+        return false;
     }
 
     function showError(message) {
@@ -61,82 +173,40 @@
         }
     }
 
-    function getPlayer() {
-        if (!window.S) return null;
-
-        if (!window.S.player) {
-            window.S.player = {};
-        }
-
-        return window.S.player;
-    }
-
-    function getPlayerStats() {
-        const player = getPlayer();
-
-        if (!player) return {};
-
-        if (!player.stats) {
-            player.stats = {};
-        }
-
-        return player.stats;
-    }
-
-    function getAccount() {
-        if (!window.S) return null;
-
-        if (!window.S.account) {
-            window.S.account = {
-                email: "",
-                name: "",
-                created: false
-            };
-        }
-
-        return window.S.account;
-    }
-
-    function touchState() {
-        if (typeof window.touchState === "function") {
-            window.touchState();
-        }
-    }
-
-    function saveGame() {
-        if (typeof window.saveGame === "function") {
-            try {
-                return window.saveGame();
-            } catch (error) {
-                console.error("[APP] Save failed:", error);
-                return false;
-            }
-        }
-
-        warn("saveGame() belum tersedia.");
-        return false;
-    }
-
-    function navigate(route) {
-        if (window.Router && typeof window.Router.navigate === "function") {
-            window.Router.navigate(route);
-            return true;
-        }
-
-        warn("Router belum tersedia:", route);
-        return false;
-    }
-
     /* =========================================================
-       SCREEN CONTROL
+       SCREEN
     ========================================================= */
 
     function hideAllScreens() {
-        const screens = document.querySelectorAll(".screen");
+        const screens =
+            document.querySelectorAll(
+                ".screen"
+            );
 
         screens.forEach(function (screen) {
             screen.classList.add("hidden");
-            screen.setAttribute("aria-hidden", "true");
+
+            /*
+             * Jangan kasih aria-hidden ke screen yang
+             * sedang memiliki focus.
+             */
+            if (
+                document.activeElement &&
+                screen.contains(
+                    document.activeElement
+                )
+            ) {
+                try {
+                    document.activeElement.blur();
+                } catch (error) {
+                    // Ignore
+                }
+            }
+
+            screen.setAttribute(
+                "aria-hidden",
+                "true"
+            );
         });
     }
 
@@ -144,43 +214,66 @@
         const screen = $(id);
 
         if (!screen) {
-            warn("Screen tidak ditemukan:", id);
+            warn(
+                "Screen tidak ditemukan:",
+                id
+            );
+
             return false;
         }
 
         hideAllScreens();
 
-        screen.classList.remove("hidden");
-        screen.setAttribute("aria-hidden", "false");
+        screen.classList.remove(
+            "hidden"
+        );
+
+        screen.setAttribute(
+            "aria-hidden",
+            "false"
+        );
 
         return true;
     }
 
     function showStartScreen() {
-        showScreen("start-screen");
+        showScreen(
+            "start-screen"
+        );
+
         navigate("start");
     }
 
     function showCharacterCreation() {
-        showScreen("character-creation-screen");
+        showScreen(
+            "character-creation-screen"
+        );
 
         bindCharacterCreation();
 
-        navigate("character");
+        populateCountrySelect();
 
         updateCharacterPreview();
 
-        log("Character creation screen opened.");
+        navigate("character");
+
+        log(
+            "Character creation screen opened."
+        );
     }
 
     function showDashboard() {
-        showScreen("main-dashboard");
+        showScreen(
+            "main-dashboard"
+        );
 
         refreshDashboard();
 
         navigate("home");
 
-        log("Dashboard opened.");
+        log(
+            "Dashboard opened."
+        );
     }
 
     /* =========================================================
@@ -188,31 +281,53 @@
     ========================================================= */
 
     function getStartFormData() {
-        const email = $("player-email");
-        const accountName = $("player-account-name");
+        const email =
+            $("player-email");
+
+        const accountName =
+            $("player-account-name");
 
         return {
-            email: email ? email.value.trim() : "",
-            accountName: accountName ? accountName.value.trim() : ""
+            email: email
+                ? email.value.trim()
+                : "",
+
+            accountName: accountName
+                ? accountName.value.trim()
+                : ""
         };
     }
 
     function validateStartForm(data) {
         if (!data.email) {
-            showError("Email wajib diisi.");
+            showError(
+                "Email wajib diisi."
+            );
+
             $("player-email")?.focus();
+
             return false;
         }
 
         if (!data.accountName) {
-            showError("Nama akun wajib diisi.");
+            showError(
+                "Nama akun wajib diisi."
+            );
+
             $("player-account-name")?.focus();
+
             return false;
         }
 
-        if (!data.email.includes("@")) {
-            showError("Masukkan email yang valid.");
+        if (
+            !data.email.includes("@")
+        ) {
+            showError(
+                "Masukkan email yang valid."
+            );
+
             $("player-email")?.focus();
+
             return false;
         }
 
@@ -220,75 +335,125 @@
     }
 
     function saveStartData(data) {
-        if (!window.S) {
-            showError("Game state belum siap.");
+        const S = getState();
+
+        if (!S) {
+            showError(
+                "Game state belum siap."
+            );
+
             return false;
         }
 
-        const account = getAccount();
+        const account =
+            getAccount();
 
-        account.email = data.email;
-        account.name = data.accountName;
+        if (!account) {
+            return false;
+        }
+
+        account.email =
+            data.email;
+
+        account.name =
+            data.accountName;
+
         account.created = true;
 
         touchState();
 
-        log("Start data saved:", {
-            email: account.email,
-            accountName: account.name
-        });
+        log(
+            "Start data saved:",
+            {
+                email:
+                    account.email,
+
+                accountName:
+                    account.name
+            }
+        );
 
         return true;
     }
 
     function handleStartGame() {
-        if (AppState.starting) return;
+        if (AppState.starting) {
+            return;
+        }
 
         AppState.starting = true;
 
         clearError();
 
         try {
-            const data = getStartFormData();
+            const data =
+                getStartFormData();
 
-            if (!validateStartForm(data)) {
-                AppState.starting = false;
+            if (
+                !validateStartForm(
+                    data
+                )
+            ) {
                 return;
             }
 
-            if (!saveStartData(data)) {
-                AppState.starting = false;
+            if (
+                !saveStartData(
+                    data
+                )
+            ) {
                 return;
             }
 
             saveGame();
 
             showCharacterCreation();
-        } catch (error) {
-            console.error("[APP] Start game error:", error);
-            showError("Terjadi kesalahan saat memulai game.");
-        }
 
-        AppState.starting = false;
+        } catch (error) {
+            console.error(
+                "[APP] Start game error:",
+                error
+            );
+
+            showError(
+                "Terjadi kesalahan saat memulai game."
+            );
+
+        } finally {
+            AppState.starting = false;
+        }
     }
 
     function bindStartForm() {
-        const button = $("start-game-button");
+        const button =
+            $("start-game-button");
 
         if (!button) {
-            warn("start-game-button tidak ditemukan.");
+            warn(
+                "start-game-button tidak ditemukan."
+            );
+
             return;
         }
 
-        if (button.dataset.bound === "true") {
+        if (
+            button.dataset.bound ===
+            "true"
+        ) {
             return;
         }
 
-        button.dataset.bound = "true";
+        button.dataset.bound =
+            "true";
 
-        button.addEventListener("click", handleStartGame);
+        button.addEventListener(
+            "click",
+            handleStartGame
+        );
 
-        log("Start form ready.");
+        log(
+            "Start form ready."
+        );
     }
 
     /* =========================================================
@@ -296,120 +461,448 @@
     ========================================================= */
 
     function getCharacterFormData() {
-        const name = $("character-name");
-        const birthdate = $("character-birthdate");
-        const shirtName = $("character-shirt-name");
-        const country = $("character-country");
+        const name =
+            $("character-name");
+
+        const birthdate =
+            $("character-birthdate");
+
+        const shirtName =
+            $("character-shirt-name");
+
+        const country =
+            $("character-country");
 
         return {
-            name: name ? name.value.trim() : "",
-            birthdate: birthdate ? birthdate.value : "",
-            shirtName: shirtName ? shirtName.value.trim() : "",
-            country: country ? country.value : "",
-            position: selectedPosition
+            name: name
+                ? name.value.trim()
+                : "",
+
+            birthdate: birthdate
+                ? birthdate.value
+                : "",
+
+            shirtName: shirtName
+                ? shirtName.value.trim()
+                : "",
+
+            country: country
+                ? country.value
+                : "",
+
+            position:
+                selectedPosition
         };
     }
 
-    function calculateAge(birthdate) {
-        if (!birthdate) return 18;
+    /* =========================================================
+       COUNTRY DROPDOWN
+    ========================================================= */
 
-        const birth = new Date(birthdate);
-        const today = new Date();
+    function getCountries() {
+        const S =
+            getState();
 
-        if (Number.isNaN(birth.getTime())) {
+        if (
+            !S ||
+            !S.world ||
+            !Array.isArray(
+                S.world.countries
+            )
+        ) {
+            return [];
+        }
+
+        return S.world.countries
+            .filter(function (country) {
+                return (
+                    country &&
+                    country.active !== false
+                );
+            })
+            .sort(function (a, b) {
+                return String(
+                    a.name || ""
+                ).localeCompare(
+                    String(
+                        b.name || ""
+                    )
+                );
+            });
+    }
+
+    function populateCountrySelect() {
+        const select =
+            $("character-country");
+
+        if (!select) {
+            warn(
+                "character-country tidak ditemukan."
+            );
+
+            return;
+        }
+
+        const countries =
+            getCountries();
+
+        if (!countries.length) {
+            warn(
+                "Country database kosong."
+            );
+
+            return;
+        }
+
+        const currentValue =
+            select.value;
+
+        select.innerHTML = "";
+
+        const placeholder =
+            document.createElement(
+                "option"
+            );
+
+        placeholder.value = "";
+
+        placeholder.textContent =
+            "Pilih negara";
+
+        select.appendChild(
+            placeholder
+        );
+
+        countries.forEach(
+            function (country) {
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+                /*
+                 * Simpan CODE sebagai value.
+                 * Contoh: IDN, BRA, FRA
+                 */
+                option.value =
+                    country.code ||
+                    country.id;
+
+                option.textContent =
+                    country.flag
+                        ? country.flag +
+                          " " +
+                          country.name
+                        : country.name;
+
+                option.dataset.countryId =
+                    country.id || "";
+
+                option.dataset.countryCode =
+                    country.code || "";
+
+                select.appendChild(
+                    option
+                );
+            }
+        );
+
+        if (currentValue) {
+            const exists =
+                Array.from(
+                    select.options
+                ).some(function (
+                    option
+                ) {
+                    return (
+                        option.value ===
+                        currentValue
+                    );
+                });
+
+            if (exists) {
+                select.value =
+                    currentValue;
+            }
+        }
+
+        log(
+            "Country dropdown populated:",
+            countries.length,
+            "countries."
+        );
+    }
+
+    function getSelectedCountry() {
+        const select =
+            $("character-country");
+
+        if (!select) {
+            return null;
+        }
+
+        const value =
+            select.value;
+
+        if (!value) {
+            return null;
+        }
+
+        const countries =
+            getCountries();
+
+        return (
+            countries.find(
+                function (country) {
+                    return (
+                        country.code ===
+                            value ||
+                        country.id ===
+                            value
+                    );
+                }
+            ) || null
+        );
+    }
+
+    /* =========================================================
+       AGE
+    ========================================================= */
+
+    function calculateAge(
+        birthdate
+    ) {
+        if (!birthdate) {
             return 18;
         }
 
-        let age = today.getFullYear() - birth.getFullYear();
+        const birth =
+            new Date(
+                birthdate
+            );
 
-        const monthDifference = today.getMonth() - birth.getMonth();
+        if (
+            Number.isNaN(
+                birth.getTime()
+            )
+        ) {
+            return 18;
+        }
+
+        const today =
+            new Date();
+
+        let age =
+            today.getFullYear() -
+            birth.getFullYear();
+
+        const monthDifference =
+            today.getMonth() -
+            birth.getMonth();
 
         if (
             monthDifference < 0 ||
             (
                 monthDifference === 0 &&
-                today.getDate() < birth.getDate()
+                today.getDate() <
+                    birth.getDate()
             )
         ) {
             age--;
         }
 
-        return Math.max(1, age);
+        return Math.max(
+            1,
+            age
+        );
     }
 
-    function saveCharacterData(data) {
-        if (!window.S) {
+    /* =========================================================
+       SAVE CHARACTER
+    ========================================================= */
+
+    function saveCharacterData(
+        data
+    ) {
+        const S =
+            getState();
+
+        if (!S) {
             return false;
         }
 
-        const player = getPlayer();
+        const player =
+            getPlayer();
 
-        player.name = data.name;
-        player.birthDate = data.birthdate;
-        player.shirtName = data.shirtName || data.name;
-        player.nationality = data.country;
-        player.position = data.position;
-        player.age = calculateAge(data.birthdate);
+        if (!player) {
+            return false;
+        }
+
+        player.name =
+            data.name;
+
+        player.birthDate =
+            data.birthdate;
+
+        player.shirtName =
+            data.shirtName ||
+            data.name;
+
+        player.nationality =
+            data.country;
+
+        player.position =
+            data.position;
+
+        player.age =
+            calculateAge(
+                data.birthdate
+            );
+
+        /*
+         * Simpan countryId juga.
+         */
+        const selectedCountry =
+            getSelectedCountry();
+
+        if (selectedCountry) {
+            player.countryId =
+                selectedCountry.id;
+        } else {
+            player.countryId =
+                data.country;
+        }
 
         touchState();
 
-        log("Character data saved:", {
-            name: player.name,
-            birthDate: player.birthDate,
-            nationality: player.nationality,
-            position: player.position,
-            age: player.age
-        });
+        log(
+            "Character data saved:",
+            {
+                name:
+                    player.name,
+
+                birthDate:
+                    player.birthDate,
+
+                nationality:
+                    player.nationality,
+
+                countryId:
+                    player.countryId,
+
+                position:
+                    player.position,
+
+                age:
+                    player.age
+            }
+        );
 
         return true;
     }
 
     /* =========================================================
-       POSITION SYSTEM
+       POSITION
     ========================================================= */
 
     function bindPositionButtons() {
-        const buttons = document.querySelectorAll("[data-position]");
+        const buttons =
+            document.querySelectorAll(
+                "[data-position]"
+            );
 
         if (!buttons.length) {
-            warn("Position buttons tidak ditemukan.");
+            warn(
+                "Position buttons tidak ditemukan."
+            );
+
             return;
         }
 
-        buttons.forEach(function (button) {
-            if (button.dataset.positionBound === "true") {
-                return;
+        buttons.forEach(
+            function (button) {
+                if (
+                    button.dataset
+                        .positionBound ===
+                    "true"
+                ) {
+                    return;
+                }
+
+                button.dataset
+                    .positionBound =
+                    "true";
+
+                button.addEventListener(
+                    "click",
+                    function () {
+                        selectedPosition =
+                            button.dataset
+                                .position;
+
+                        buttons.forEach(
+                            function (
+                                item
+                            ) {
+                                item.classList
+                                    .remove(
+                                        "active"
+                                    );
+
+                                item.classList
+                                    .remove(
+                                        "selected"
+                                    );
+                            }
+                        );
+
+                        button.classList.add(
+                            "active"
+                        );
+
+                        button.classList.add(
+                            "selected"
+                        );
+
+                        updateCharacterPreview();
+
+                        /*
+                         * Gacha lama dibuang ketika
+                         * posisi berubah supaya player
+                         * tidak memakai hasil posisi lama.
+                         */
+                        window.characterGacha =
+                            null;
+
+                        log(
+                            "Position selected:",
+                            selectedPosition
+                        );
+                    }
+                );
             }
-
-            button.dataset.positionBound = "true";
-
-            button.addEventListener("click", function () {
-                selectedPosition = button.dataset.position;
-
-                buttons.forEach(function (item) {
-                    item.classList.remove("active");
-                    item.classList.remove("selected");
-                });
-
-                button.classList.add("active");
-                button.classList.add("selected");
-
-                updateCharacterPreview();
-
-                log("Position selected:", selectedPosition);
-            });
-        });
-
-        const defaultButton = document.querySelector(
-            '[data-position="' + selectedPosition + '"]'
         );
 
+        const defaultButton =
+            document.querySelector(
+                '[data-position="' +
+                selectedPosition +
+                '"]'
+            );
+
         if (defaultButton) {
-            defaultButton.classList.add("active");
-            defaultButton.classList.add("selected");
+            defaultButton.classList.add(
+                "active"
+            );
+
+            defaultButton.classList.add(
+                "selected"
+            );
         }
 
-        log("Position buttons ready.");
+        log(
+            "Position buttons ready."
+        );
     }
 
     /* =========================================================
@@ -417,16 +910,25 @@
     ========================================================= */
 
     function updateCharacterPreview() {
-        const data = getCharacterFormData();
+        const data =
+            getCharacterFormData();
 
-        const cardName = $("card-name");
-        const cardPosition = $("card-position");
-        const cardPositionName = $("card-position-name");
-        const cardShirtName = $("card-shirt-name");
+        const cardName =
+            $("card-name");
+
+        const cardPosition =
+            $("card-position");
+
+        const cardPositionName =
+            $("card-position-name");
+
+        const cardShirtName =
+            $("card-shirt-name");
 
         if (cardName) {
             cardName.textContent =
-                data.name || "YOUR PLAYER";
+                data.name ||
+                "YOUR PLAYER";
         }
 
         if (cardPosition) {
@@ -436,7 +938,9 @@
 
         if (cardPositionName) {
             cardPositionName.textContent =
-                POSITION_NAMES[selectedPosition] ||
+                POSITION_NAMES[
+                    selectedPosition
+                ] ||
                 selectedPosition;
         }
 
@@ -451,36 +955,76 @@
     }
 
     /* =========================================================
-       GACHA / STAT GENERATOR
+       GACHA
     ========================================================= */
 
-    function randomStat(min, max) {
+    function randomStat(
+        min,
+        max
+    ) {
         return Math.floor(
-            Math.random() * (max - min + 1)
+            Math.random() *
+                (
+                    max -
+                    min +
+                    1
+                )
         ) + min;
     }
 
-    function calculateCharacterOVR(stats) {
+    function calculateCharacterOVR(
+        stats
+    ) {
         const values = [
-            Number(stats.pac) || 0,
-            Number(stats.sho) || 0,
-            Number(stats.pas) || 0,
-            Number(stats.dri) || 0,
-            Number(stats.def) || 0,
-            Number(stats.phy) || 0
+            Number(
+                stats.pac
+            ) || 0,
+
+            Number(
+                stats.sho
+            ) || 0,
+
+            Number(
+                stats.pas
+            ) || 0,
+
+            Number(
+                stats.dri
+            ) || 0,
+
+            Number(
+                stats.def
+            ) || 0,
+
+            Number(
+                stats.phy
+            ) || 0
         ];
 
-        const total = values.reduce(
-            function (sum, value) {
-                return sum + value;
-            },
-            0
-        );
+        const total =
+            values.reduce(
+                function (
+                    sum,
+                    value
+                ) {
+                    return (
+                        sum +
+                        value
+                    );
+                },
+                0
+            );
 
-        return Math.round(total / values.length);
+        return Math.round(
+            total /
+                values.length
+        );
     }
 
-    function updateGachaDisplay(stats, ovr) {
+    function updateGachaDisplay(
+        stats,
+        ovr
+    ) {
         const elements = {
             pac: "gacha-pac",
             sho: "gacha-sho",
@@ -490,22 +1034,35 @@
             phy: "gacha-phy"
         };
 
-        Object.keys(elements).forEach(function (key) {
-            const element = $(elements[key]);
+        Object.keys(
+            elements
+        ).forEach(
+            function (key) {
+                const element =
+                    $(
+                        elements[key]
+                    );
 
-            if (element) {
-                element.textContent = stats[key];
+                if (element) {
+                    element.textContent =
+                        stats[key];
+                }
             }
-        });
+        );
 
-        const ovrElement = $("gacha-ovr");
+        const ovrElement =
+            $("gacha-ovr");
 
         if (ovrElement) {
-            ovrElement.textContent = ovr;
+            ovrElement.textContent =
+                ovr;
         }
     }
 
-    function updateCardStats(stats, ovr) {
+    function updateCardStats(
+        stats,
+        ovr
+    ) {
         const elements = {
             pac: "card-pac",
             sho: "card-sho",
@@ -515,32 +1072,67 @@
             phy: "card-phy"
         };
 
-        Object.keys(elements).forEach(function (key) {
-            const element = $(elements[key]);
+        Object.keys(
+            elements
+        ).forEach(
+            function (key) {
+                const element =
+                    $(
+                        elements[key]
+                    );
 
-            if (element) {
-                element.textContent = stats[key];
+                if (element) {
+                    element.textContent =
+                        stats[key];
+                }
             }
-        });
+        );
 
-        const ovrElement = $("card-ovr");
+        const ovrElement =
+            $("card-ovr");
 
         if (ovrElement) {
-            ovrElement.textContent = ovr;
+            ovrElement.textContent =
+                ovr;
         }
     }
 
     function runCharacterGacha() {
         const stats = {
-            pac: randomStat(45, 75),
-            sho: randomStat(45, 75),
-            pas: randomStat(45, 75),
-            dri: randomStat(45, 75),
-            def: randomStat(35, 70),
-            phy: randomStat(45, 75)
+            pac: randomStat(
+                45,
+                75
+            ),
+
+            sho: randomStat(
+                45,
+                75
+            ),
+
+            pas: randomStat(
+                45,
+                75
+            ),
+
+            dri: randomStat(
+                45,
+                75
+            ),
+
+            def: randomStat(
+                35,
+                70
+            ),
+
+            phy: randomStat(
+                45,
+                75
+            )
         };
 
-        switch (selectedPosition) {
+        switch (
+            selectedPosition
+        ) {
             case "ST":
                 stats.sho += 10;
                 stats.pac += 5;
@@ -574,26 +1166,51 @@
                 break;
         }
 
-        Object.keys(stats).forEach(function (key) {
-            stats[key] = Math.min(
-                99,
-                Math.max(1, Math.round(stats[key]))
-            );
-        });
+        Object.keys(
+            stats
+        ).forEach(
+            function (key) {
+                stats[key] =
+                    Math.min(
+                        99,
+                        Math.max(
+                            1,
+                            Math.round(
+                                stats[key]
+                            )
+                        )
+                    );
+            }
+        );
 
-        const ovr = calculateCharacterOVR(stats);
+        const ovr =
+            calculateCharacterOVR(
+                stats
+            );
 
         window.characterGacha = {
             stats: stats,
             ovr: ovr
         };
 
-        updateGachaDisplay(stats, ovr);
-        updateCardStats(stats, ovr);
+        updateGachaDisplay(
+            stats,
+            ovr
+        );
 
-        log("Gacha result:", window.characterGacha);
+        updateCardStats(
+            stats,
+            ovr
+        );
 
-        return window.characterGacha;
+        log(
+            "Gacha result:",
+            window.characterGacha
+        );
+
+        return (
+            window.characterGacha
+        );
     }
 
     /* =========================================================
@@ -601,40 +1218,79 @@
     ========================================================= */
 
     function handleCreatePlayer() {
-        const data = getCharacterFormData();
+        const data =
+            getCharacterFormData();
 
         if (!data.name) {
-            alert("Nama pemain wajib diisi.");
-            $("character-name")?.focus();
+            alert(
+                "Nama pemain wajib diisi."
+            );
+
+            $("character-name")
+                ?.focus();
+
             return;
         }
 
         if (!data.birthdate) {
-            alert("Tanggal lahir wajib diisi.");
-            $("character-birthdate")?.focus();
+            alert(
+                "Tanggal lahir wajib diisi."
+            );
+
+            $("character-birthdate")
+                ?.focus();
+
             return;
         }
 
         if (!data.country) {
-            alert("Pilih negara terlebih dahulu.");
-            $("character-country")?.focus();
+            alert(
+                "Pilih negara terlebih dahulu."
+            );
+
+            $("character-country")
+                ?.focus();
+
             return;
         }
 
-        data.position = selectedPosition;
+        data.position =
+            selectedPosition;
 
-        if (!window.characterGacha) {
+        /*
+         * Kalau belum gacha,
+         * otomatis gacha sekali.
+         */
+        if (
+            !window.characterGacha
+        ) {
             runCharacterGacha();
         }
 
-        if (!saveCharacterData(data)) {
-            alert("Gagal menyimpan karakter.");
+        if (
+            !saveCharacterData(
+                data
+            )
+        ) {
+            alert(
+                "Gagal menyimpan karakter."
+            );
+
             return;
         }
 
-        const player = getPlayer();
-        const stats = window.characterGacha.stats;
-        const ovr = window.characterGacha.ovr;
+        const player =
+            getPlayer();
+
+        const stats =
+            window.characterGacha
+                .stats;
+
+        const ovr =
+            window.characterGacha
+                .ovr;
+
+        /* Player stats */
 
         player.stats = {
             pac: stats.pac,
@@ -645,49 +1301,81 @@
             phy: stats.phy
         };
 
-        player.ovr = ovr;
+        player.ovr =
+            ovr;
 
-        player.potential = Math.min(
-            99,
-            Math.max(
-                ovr + 15,
-                75
-            )
-        );
+        player.potential =
+            Math.min(
+                99,
+                Math.max(
+                    ovr + 15,
+                    75
+                )
+            );
 
         /* Career */
 
-        if (window.S.career) {
-            window.S.career.started = true;
-            window.S.career.startDate =
-                new Date().toISOString().slice(0, 10);
-            window.S.career.careerStatus = "active";
+        const S =
+            getState();
 
-            if (!window.S.career.currentClub) {
-                window.S.career.currentClub = null;
-            }
+        if (S.career) {
+            S.career.started =
+                true;
+
+            S.career.startDate =
+                new Date()
+                    .toISOString()
+                    .slice(
+                        0,
+                        10
+                    );
+
+            S.career.careerStatus =
+                "active";
         }
 
         /* World */
 
-        if (window.S.world) {
-            window.S.world.activeCountry = data.country;
+        if (S.world) {
+            S.world.activeCountry =
+                data.country;
+
+            S.world.activeCountryId =
+                player.countryId;
         }
 
-        /* Economy */
+        /* Default player economy */
 
-        if (player.economy) {
-            if (typeof player.economy.money !== "number") {
-                player.economy.money = 0;
-            }
+        if (
+            !player.economy
+        ) {
+            player.economy = {};
         }
 
-        /* Social */
+        if (
+            typeof player
+                .economy.money !==
+            "number"
+        ) {
+            player.economy.money =
+                0;
+        }
 
-        if (player.social) {
-            if (typeof player.social.followers !== "number") {
-                player.social.followers = 0;
-            }
+        /* Default player social */
+
+        if (
+            !player.social
+        ) {
+            player.social = {};
+        }
+
+        if (
+            typeof player
+                .social.followers !==
+            "number"
+        ) {
+            player.social.followers =
+                0;
         }
 
         touchState();
@@ -695,9 +1383,13 @@
         saveGame();
 
         refreshDashboard();
+
         showDashboard();
 
-        log("Player created successfully:", player);
+        log(
+            "Player created successfully:",
+            player
+        );
     }
 
     /* =========================================================
@@ -707,13 +1399,18 @@
     function bindCharacterCreation() {
         bindPositionButtons();
 
-        const gachaButton = $("gacha-button");
+        populateCountrySelect();
+
+        const gachaButton =
+            $("gacha-button");
 
         if (
             gachaButton &&
-            gachaButton.dataset.bound !== "true"
+            gachaButton.dataset
+                .bound !== "true"
         ) {
-            gachaButton.dataset.bound = "true";
+            gachaButton.dataset
+                .bound = "true";
 
             gachaButton.addEventListener(
                 "click",
@@ -721,13 +1418,16 @@
             );
         }
 
-        const createButton = $("create-player-button");
+        const createButton =
+            $("create-player-button");
 
         if (
             createButton &&
-            createButton.dataset.bound !== "true"
+            createButton.dataset
+                .bound !== "true"
         ) {
-            createButton.dataset.bound = "true";
+            createButton.dataset
+                .bound = "true";
 
             createButton.addEventListener(
                 "click",
@@ -740,115 +1440,232 @@
             "character-shirt-name",
             "character-birthdate",
             "character-country"
-        ].forEach(function (id) {
-            const element = $(id);
+        ].forEach(
+            function (id) {
+                const element =
+                    $(id);
 
-            if (!element) return;
+                if (!element) {
+                    return;
+                }
 
-            if (element.dataset.previewBound === "true") {
-                return;
+                if (
+                    element.dataset
+                        .previewBound ===
+                    "true"
+                ) {
+                    return;
+                }
+
+                element.dataset
+                    .previewBound =
+                    "true";
+
+                element.addEventListener(
+                    "input",
+                    updateCharacterPreview
+                );
+
+                element.addEventListener(
+                    "change",
+                    function () {
+                        updateCharacterPreview();
+
+                        if (
+                            id ===
+                            "character-country"
+                        ) {
+                            const country =
+                                getSelectedCountry();
+
+                            if (country) {
+                                log(
+                                    "Country selected:",
+                                    country.name,
+                                    country.code
+                                );
+                            }
+                        }
+                    }
+                );
             }
-
-            element.dataset.previewBound = "true";
-
-            element.addEventListener(
-                "input",
-                updateCharacterPreview
-            );
-
-            element.addEventListener(
-                "change",
-                updateCharacterPreview
-            );
-        });
+        );
 
         updateCharacterPreview();
 
-        log("Character creation ready.");
+        AppState.characterReady =
+            true;
+
+        log(
+            "Character creation ready."
+        );
     }
 
     /* =========================================================
        DASHBOARD
     ========================================================= */
 
+    function formatNumber(
+        value
+    ) {
+        return (
+            Number(
+                value
+            ) || 0
+        ).toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits:
+                    0
+            }
+        );
+    }
+
+    function formatMoney(
+        value
+    ) {
+        return formatNumber(
+            value
+        );
+    }
+
     function refreshDashboard() {
-        const player = getPlayer();
+        const player =
+            getPlayer();
 
         if (!player) {
-            warn("Player state belum tersedia.");
+            warn(
+                "Player state belum tersedia."
+            );
+
             return;
         }
 
-        const stats = getPlayerStats();
+        const stats =
+            getPlayerStats();
 
         const money =
             player.economy &&
-            typeof player.economy.money === "number"
-                ? player.economy.money
+            typeof player.economy
+                .money ===
+                "number"
+                ? player.economy
+                    .money
                 : 0;
 
         const followers =
             player.social &&
-            typeof player.social.followers === "number"
-                ? player.social.followers
+            typeof player.social
+                .followers ===
+                "number"
+                ? player.social
+                    .followers
                 : 0;
 
-        const clubName =
+        let clubName =
+            "Free Agent";
+
+        if (
             player.career &&
             player.career.currentClubName
-                ? player.career.currentClubName
-                : "Free Agent";
+        ) {
+            clubName =
+                player.career
+                    .currentClubName;
+        }
+
+        if (
+            window.S &&
+            window.S.career &&
+            window.S.career
+                .currentClubName
+        ) {
+            clubName =
+                window.S.career
+                    .currentClubName;
+        }
 
         /* Header */
 
-        const headerName = $("header-player-name");
+        const headerAvatar =
+            $("header-avatar");
+
+        if (
+            headerAvatar &&
+            player.photo
+        ) {
+            headerAvatar.src =
+                player.photo;
+
+            headerAvatar.classList.remove(
+                "hidden"
+            );
+        }
+
+        const headerName =
+            $("header-player-name");
 
         if (headerName) {
             headerName.textContent =
-                player.name || "Player";
+                player.name ||
+                "Player";
         }
 
-        const headerClub = $("header-player-club");
+        const headerClub =
+            $("header-player-club");
 
         if (headerClub) {
-            headerClub.textContent = clubName;
+            headerClub.textContent =
+                clubName;
         }
 
-        const headerMoney = $("header-money");
+        const headerMoney =
+            $("header-money");
 
         if (headerMoney) {
             headerMoney.textContent =
-                formatMoney(money);
+                formatMoney(
+                    money
+                );
         }
 
-        const headerFollowers = $("header-followers");
+        const headerFollowers =
+            $("header-followers");
 
         if (headerFollowers) {
             headerFollowers.textContent =
-                formatNumber(followers);
+                formatNumber(
+                    followers
+                );
         }
 
-        /* Dashboard card */
+        /* Dashboard player card */
 
-        const dashboardName = $("dashboard-player-name");
+        const dashboardName =
+            $("dashboard-player-name");
 
         if (dashboardName) {
             dashboardName.textContent =
-                player.name || "Player";
+                player.name ||
+                "Player";
         }
 
-        const dashboardOVR = $("dashboard-ovr");
+        const dashboardOVR =
+            $("dashboard-ovr");
 
         if (dashboardOVR) {
             dashboardOVR.textContent =
-                player.ovr || 0;
+                player.ovr ||
+                0;
         }
 
-        const dashboardPosition = $("dashboard-position");
+        const dashboardPosition =
+            $("dashboard-position");
 
         if (dashboardPosition) {
             dashboardPosition.textContent =
-                player.position || "ST";
+                player.position ||
+                "ST";
         }
 
         const dashboardStats = {
@@ -860,17 +1677,24 @@
             phy: "dashboard-phy"
         };
 
-        Object.keys(dashboardStats).forEach(function (key) {
-            const element =
-                $(dashboardStats[key]);
+        Object.keys(
+            dashboardStats
+        ).forEach(
+            function (key) {
+                const element =
+                    $(
+                        dashboardStats[
+                            key
+                        ]
+                    );
 
-            if (element) {
-                element.textContent =
-                    stats[key] || 0;
+                if (element) {
+                    element.textContent =
+                        stats[key] ||
+                        0;
+                }
             }
-        });
-
-        /* Player photo */
+        );
 
         updatePlayerPhoto(
             $("dashboard-player-photo"),
@@ -884,18 +1708,9 @@
             player
         );
 
-        /* Header avatar */
-
-        const avatar = $("header-avatar");
-
-        if (avatar) {
-            if (player.photo) {
-                avatar.src = player.photo;
-                avatar.classList.remove("hidden");
-            }
-        }
-
-        log("Dashboard refreshed.");
+        log(
+            "Dashboard refreshed."
+        );
     }
 
     function updatePlayerPhoto(
@@ -903,40 +1718,33 @@
         placeholderElement,
         player
     ) {
-        if (!imageElement || !placeholderElement) {
+        if (
+            !imageElement ||
+            !placeholderElement
+        ) {
             return;
         }
 
         if (player.photo) {
-            imageElement.src = player.photo;
-            imageElement.classList.remove("hidden");
-            placeholderElement.classList.add("hidden");
+            imageElement.src =
+                player.photo;
+
+            imageElement.classList.remove(
+                "hidden"
+            );
+
+            placeholderElement.classList.add(
+                "hidden"
+            );
         } else {
-            imageElement.classList.add("hidden");
-            placeholderElement.classList.remove("hidden");
+            imageElement.classList.add(
+                "hidden"
+            );
+
+            placeholderElement.classList.remove(
+                "hidden"
+            );
         }
-    }
-
-    function formatMoney(value) {
-        const number = Number(value) || 0;
-
-        return number.toLocaleString(
-            "en-US",
-            {
-                maximumFractionDigits: 0
-            }
-        );
-    }
-
-    function formatNumber(value) {
-        const number = Number(value) || 0;
-
-        return number.toLocaleString(
-            "en-US",
-            {
-                maximumFractionDigits: 0
-            }
-        );
     }
 
     /* =========================================================
@@ -944,53 +1752,84 @@
     ========================================================= */
 
     function bindDashboardNavigation() {
-        const pageButtons =
-            document.querySelectorAll("[data-page]");
+        const buttons =
+            document.querySelectorAll(
+                "[data-page]"
+            );
 
-        pageButtons.forEach(function (button) {
-            if (button.dataset.pageBound === "true") {
-                return;
-            }
-
-            button.dataset.pageBound = "true";
-
-            button.addEventListener("click", function () {
-                const page =
-                    button.dataset.page;
-
-                if (!page) return;
-
-                if (page === "home") {
-                    showDashboard();
+        buttons.forEach(
+            function (button) {
+                if (
+                    button.dataset
+                        .pageBound ===
+                    "true"
+                ) {
                     return;
                 }
 
-                navigate(page);
+                button.dataset
+                    .pageBound =
+                    "true";
 
-                log("Dashboard navigation:", page);
-            });
-        });
+                button.addEventListener(
+                    "click",
+                    function () {
+                        const page =
+                            button.dataset
+                                .page;
 
-        log("Dashboard navigation ready.");
+                        if (!page) {
+                            return;
+                        }
+
+                        if (
+                            page ===
+                            "home"
+                        ) {
+                            showDashboard();
+                            return;
+                        }
+
+                        navigate(
+                            page
+                        );
+
+                        log(
+                            "Dashboard navigation:",
+                            page
+                        );
+                    }
+                );
+            }
+        );
+
+        log(
+            "Dashboard navigation ready."
+        );
     }
 
     /* =========================================================
-       GLOBAL BUTTONS
+       CREATOR BUTTONS
     ========================================================= */
 
     function bindGlobalButtons() {
-        const creatorAccess = $("creator-access");
+        const creatorAccess =
+            $("creator-access");
 
         if (
             creatorAccess &&
-            creatorAccess.dataset.bound !== "true"
+            creatorAccess.dataset
+                .bound !== "true"
         ) {
-            creatorAccess.dataset.bound = "true";
+            creatorAccess.dataset
+                .bound = "true";
 
             creatorAccess.addEventListener(
                 "click",
                 function () {
-                    navigate("creator");
+                    navigate(
+                        "creator"
+                    );
                 }
             );
         }
@@ -1000,14 +1839,18 @@
 
         if (
             creatorModeButton &&
-            creatorModeButton.dataset.bound !== "true"
+            creatorModeButton.dataset
+                .bound !== "true"
         ) {
-            creatorModeButton.dataset.bound = "true";
+            creatorModeButton.dataset
+                .bound = "true";
 
             creatorModeButton.addEventListener(
                 "click",
                 function () {
-                    navigate("creator");
+                    navigate(
+                        "creator"
+                    );
                 }
             );
         }
@@ -1017,9 +1860,11 @@
 
         if (
             creatorClose &&
-            creatorClose.dataset.bound !== "true"
+            creatorClose.dataset
+                .bound !== "true"
         ) {
-            creatorClose.dataset.bound = "true";
+            creatorClose.dataset
+                .bound = "true";
 
             creatorClose.addEventListener(
                 "click",
@@ -1036,32 +1881,49 @@
 
     async function bootGame() {
         if (AppState.booted) {
-            log("Boot skipped. App already booted.");
+            log(
+                "Boot skipped. App already booted."
+            );
+
             return;
         }
 
-        log("Booting RV SPORTS: FC CUP 26...");
+        log(
+            "Booting RV SPORTS: FC CUP 26..."
+        );
 
         try {
-            if (window.S) {
+            const S =
+                getState();
+
+            if (S) {
                 log(
                     "State detected:",
-                    window.S.meta
-                        ? window.S.meta.version
+                    S.meta
+                        ? S.meta.version
                         : "unknown"
                 );
             } else {
-                warn("window.S belum tersedia.");
+                warn(
+                    "window.S belum tersedia."
+                );
             }
 
             bindStartForm();
+
             bindCharacterCreation();
+
             bindDashboardNavigation();
+
             bindGlobalButtons();
 
-            AppState.booted = true;
+            AppState.booted =
+                true;
 
-            log("Boot complete.");
+            log(
+                "Boot complete."
+            );
+
         } catch (error) {
             console.error(
                 "[APP] Boot error:",
@@ -1075,11 +1937,14 @@
     ========================================================= */
 
     window.App = {
-        version: APP_VERSION,
+        version:
+            APP_VERSION,
 
-        boot: bootGame,
+        boot:
+            bootGame,
 
-        startGame: handleStartGame,
+        startGame:
+            handleStartGame,
 
         getStartFormData:
             getStartFormData,
@@ -1105,6 +1970,12 @@
         showDashboard:
             showDashboard,
 
+        populateCountrySelect:
+            populateCountrySelect,
+
+        getSelectedCountry:
+            getSelectedCountry,
+
         runCharacterGacha:
             runCharacterGacha,
 
@@ -1115,7 +1986,8 @@
             updateCharacterPreview
     };
 
-    window.bootGame = bootGame;
+    window.bootGame =
+        bootGame;
 
     console.log(
         "RV SPORTS: FC CUP 26 App loaded."
@@ -1126,8 +1998,13 @@
         APP_VERSION
     );
 
+    /* =========================================================
+       DOM READY
+    ========================================================= */
+
     if (
-        document.readyState === "loading"
+        document.readyState ===
+        "loading"
     ) {
         document.addEventListener(
             "DOMContentLoaded",
