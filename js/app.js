@@ -2,13 +2,13 @@
    RV SPORTS: FC CUP 26
    MAIN APPLICATION
    File: js/app.js
-   Version: 2.1.0
+   Version: 2.2.0
    ========================================================= */
 
 (function () {
     "use strict";
 
-    const APP_VERSION = "2.1.0";
+    const APP_VERSION = "2.2.0";
 
     const AppState = {
         booted: false,
@@ -141,8 +141,7 @@
             window.Router &&
             typeof window.Router.navigate === "function"
         ) {
-            window.Router.navigate(route);
-            return true;
+            return window.Router.navigate(route);
         }
 
         warn(
@@ -179,30 +178,21 @@
 
     function hideAllScreens() {
         const screens =
-            document.querySelectorAll(
-                ".screen"
-            );
+            document.querySelectorAll(".screen");
 
         screens.forEach(function (screen) {
-            screen.classList.add("hidden");
-
-            /*
-             * Jangan kasih aria-hidden ke screen yang
-             * sedang memiliki focus.
-             */
             if (
                 document.activeElement &&
-                screen.contains(
-                    document.activeElement
-                )
+                screen.contains(document.activeElement)
             ) {
                 try {
                     document.activeElement.blur();
                 } catch (error) {
-                    // Ignore
+                    // Ignore focus errors.
                 }
             }
 
+            screen.classList.add("hidden");
             screen.setAttribute(
                 "aria-hidden",
                 "true"
@@ -224,10 +214,7 @@
 
         hideAllScreens();
 
-        screen.classList.remove(
-            "hidden"
-        );
-
+        screen.classList.remove("hidden");
         screen.setAttribute(
             "aria-hidden",
             "false"
@@ -237,22 +224,26 @@
     }
 
     function showStartScreen() {
-        showScreen(
-            "start-screen"
-        );
+        if (!showScreen("start-screen")) {
+            return false;
+        }
 
         navigate("start");
+
+        return true;
     }
 
     function showCharacterCreation() {
-        showScreen(
-            "character-creation-screen"
-        );
+        if (
+            !showScreen(
+                "character-creation-screen"
+            )
+        ) {
+            return false;
+        }
 
         bindCharacterCreation();
-
         populateCountrySelect();
-
         updateCharacterPreview();
 
         navigate("character");
@@ -260,20 +251,39 @@
         log(
             "Character creation screen opened."
         );
+
+        return true;
     }
 
+    /*
+     * PENTING:
+     *
+     * Dashboard adalah ROUTE "dashboard".
+     * "home" hanya PAGE di dalam dashboard.
+     *
+     * Jangan gunakan:
+     * navigate("home")
+     *
+     * Gunakan:
+     * navigate("dashboard")
+     */
+
     function showDashboard() {
-        showScreen(
-            "main-dashboard"
-        );
+        if (
+            !showScreen("main-dashboard")
+        ) {
+            return false;
+        }
 
         refreshDashboard();
 
-        navigate("home");
+        navigate("dashboard");
 
         log(
             "Dashboard opened."
         );
+
+        return true;
     }
 
     /* =========================================================
@@ -319,9 +329,7 @@
             return false;
         }
 
-        if (
-            !data.email.includes("@")
-        ) {
+        if (!data.email.includes("@")) {
             showError(
                 "Masukkan email yang valid."
             );
@@ -345,8 +353,7 @@
             return false;
         }
 
-        const account =
-            getAccount();
+        const account = getAccount();
 
         if (!account) {
             return false;
@@ -365,11 +372,8 @@
         log(
             "Start data saved:",
             {
-                email:
-                    account.email,
-
-                accountName:
-                    account.name
+                email: account.email,
+                accountName: account.name
             }
         );
 
@@ -390,17 +394,13 @@
                 getStartFormData();
 
             if (
-                !validateStartForm(
-                    data
-                )
+                !validateStartForm(data)
             ) {
                 return;
             }
 
             if (
-                !saveStartData(
-                    data
-                )
+                !saveStartData(data)
             ) {
                 return;
             }
@@ -437,14 +437,12 @@
         }
 
         if (
-            button.dataset.bound ===
-            "true"
+            button.dataset.bound === "true"
         ) {
             return;
         }
 
-        button.dataset.bound =
-            "true";
+        button.dataset.bound = "true";
 
         button.addEventListener(
             "click",
@@ -496,12 +494,11 @@
     }
 
     /* =========================================================
-       COUNTRY DROPDOWN
+       COUNTRY
     ========================================================= */
 
     function getCountries() {
-        const S =
-            getState();
+        const S = getState();
 
         if (
             !S ||
@@ -565,7 +562,6 @@
             );
 
         placeholder.value = "";
-
         placeholder.textContent =
             "Pilih negara";
 
@@ -580,10 +576,6 @@
                         "option"
                     );
 
-                /*
-                 * Simpan CODE sebagai value.
-                 * Contoh: IDN, BRA, FRA
-                 */
                 option.value =
                     country.code ||
                     country.id;
@@ -655,10 +647,8 @@
             countries.find(
                 function (country) {
                     return (
-                        country.code ===
-                            value ||
-                        country.id ===
-                            value
+                        country.code === value ||
+                        country.id === value
                     );
                 }
             ) || null
@@ -669,17 +659,13 @@
        AGE
     ========================================================= */
 
-    function calculateAge(
-        birthdate
-    ) {
+    function calculateAge(birthdate) {
         if (!birthdate) {
             return 18;
         }
 
         const birth =
-            new Date(
-                birthdate
-            );
+            new Date(birthdate);
 
         if (
             Number.isNaN(
@@ -721,9 +707,7 @@
        SAVE CHARACTER
     ========================================================= */
 
-    function saveCharacterData(
-        data
-    ) {
+    function saveCharacterData(data) {
         const S =
             getState();
 
@@ -759,9 +743,6 @@
                 data.birthdate
             );
 
-        /*
-         * Simpan countryId juga.
-         */
         const selectedCountry =
             getSelectedCountry();
 
@@ -841,9 +822,7 @@
                                 .position;
 
                         buttons.forEach(
-                            function (
-                                item
-                            ) {
+                            function (item) {
                                 item.classList
                                     .remove(
                                         "active"
@@ -864,15 +843,10 @@
                             "selected"
                         );
 
-                        updateCharacterPreview();
-
-                        /*
-                         * Gacha lama dibuang ketika
-                         * posisi berubah supaya player
-                         * tidak memakai hasil posisi lama.
-                         */
                         window.characterGacha =
                             null;
+
+                        updateCharacterPreview();
 
                         log(
                             "Position selected:",
@@ -958,66 +932,38 @@
        GACHA
     ========================================================= */
 
-    function randomStat(
-        min,
-        max
-    ) {
+    function randomStat(min, max) {
         return Math.floor(
             Math.random() *
-                (
-                    max -
-                    min +
-                    1
-                )
+            (
+                max -
+                min +
+                1
+            )
         ) + min;
     }
 
-    function calculateCharacterOVR(
-        stats
-    ) {
+    function calculateCharacterOVR(stats) {
         const values = [
-            Number(
-                stats.pac
-            ) || 0,
-
-            Number(
-                stats.sho
-            ) || 0,
-
-            Number(
-                stats.pas
-            ) || 0,
-
-            Number(
-                stats.dri
-            ) || 0,
-
-            Number(
-                stats.def
-            ) || 0,
-
-            Number(
-                stats.phy
-            ) || 0
+            Number(stats.pac) || 0,
+            Number(stats.sho) || 0,
+            Number(stats.pas) || 0,
+            Number(stats.dri) || 0,
+            Number(stats.def) || 0,
+            Number(stats.phy) || 0
         ];
 
         const total =
             values.reduce(
-                function (
-                    sum,
-                    value
-                ) {
-                    return (
-                        sum +
-                        value
-                    );
+                function (sum, value) {
+                    return sum + value;
                 },
                 0
             );
 
         return Math.round(
             total /
-                values.length
+            values.length
         );
     }
 
@@ -1034,21 +980,16 @@
             phy: "gacha-phy"
         };
 
-        Object.keys(
-            elements
-        ).forEach(
-            function (key) {
+        Object.keys(elements)
+            .forEach(function (key) {
                 const element =
-                    $(
-                        elements[key]
-                    );
+                    $(elements[key]);
 
                 if (element) {
                     element.textContent =
                         stats[key];
                 }
-            }
-        );
+            });
 
         const ovrElement =
             $("gacha-ovr");
@@ -1072,21 +1013,16 @@
             phy: "card-phy"
         };
 
-        Object.keys(
-            elements
-        ).forEach(
-            function (key) {
+        Object.keys(elements)
+            .forEach(function (key) {
                 const element =
-                    $(
-                        elements[key]
-                    );
+                    $(elements[key]);
 
                 if (element) {
                     element.textContent =
                         stats[key];
                 }
-            }
-        );
+            });
 
         const ovrElement =
             $("card-ovr");
@@ -1099,40 +1035,15 @@
 
     function runCharacterGacha() {
         const stats = {
-            pac: randomStat(
-                45,
-                75
-            ),
-
-            sho: randomStat(
-                45,
-                75
-            ),
-
-            pas: randomStat(
-                45,
-                75
-            ),
-
-            dri: randomStat(
-                45,
-                75
-            ),
-
-            def: randomStat(
-                35,
-                70
-            ),
-
-            phy: randomStat(
-                45,
-                75
-            )
+            pac: randomStat(45, 75),
+            sho: randomStat(45, 75),
+            pas: randomStat(45, 75),
+            dri: randomStat(45, 75),
+            def: randomStat(35, 70),
+            phy: randomStat(45, 75)
         };
 
-        switch (
-            selectedPosition
-        ) {
+        switch (selectedPosition) {
             case "ST":
                 stats.sho += 10;
                 stats.pac += 5;
@@ -1166,10 +1077,8 @@
                 break;
         }
 
-        Object.keys(
-            stats
-        ).forEach(
-            function (key) {
+        Object.keys(stats)
+            .forEach(function (key) {
                 stats[key] =
                     Math.min(
                         99,
@@ -1180,8 +1089,7 @@
                             )
                         )
                     );
-            }
-        );
+            });
 
         const ovr =
             calculateCharacterOVR(
@@ -1208,9 +1116,7 @@
             window.characterGacha
         );
 
-        return (
-            window.characterGacha
-        );
+        return window.characterGacha;
     }
 
     /* =========================================================
@@ -1226,8 +1132,7 @@
                 "Nama pemain wajib diisi."
             );
 
-            $("character-name")
-                ?.focus();
+            $("character-name")?.focus();
 
             return;
         }
@@ -1237,8 +1142,7 @@
                 "Tanggal lahir wajib diisi."
             );
 
-            $("character-birthdate")
-                ?.focus();
+            $("character-birthdate")?.focus();
 
             return;
         }
@@ -1248,8 +1152,7 @@
                 "Pilih negara terlebih dahulu."
             );
 
-            $("character-country")
-                ?.focus();
+            $("character-country")?.focus();
 
             return;
         }
@@ -1257,20 +1160,12 @@
         data.position =
             selectedPosition;
 
-        /*
-         * Kalau belum gacha,
-         * otomatis gacha sekali.
-         */
-        if (
-            !window.characterGacha
-        ) {
+        if (!window.characterGacha) {
             runCharacterGacha();
         }
 
         if (
-            !saveCharacterData(
-                data
-            )
+            !saveCharacterData(data)
         ) {
             alert(
                 "Gagal menyimpan karakter."
@@ -1283,12 +1178,10 @@
             getPlayer();
 
         const stats =
-            window.characterGacha
-                .stats;
+            window.characterGacha.stats;
 
         const ovr =
-            window.characterGacha
-                .ovr;
+            window.characterGacha.ovr;
 
         /* Player stats */
 
@@ -1344,38 +1237,30 @@
                 player.countryId;
         }
 
-        /* Default player economy */
+        /* Economy */
 
-        if (
-            !player.economy
-        ) {
+        if (!player.economy) {
             player.economy = {};
         }
 
         if (
-            typeof player
-                .economy.money !==
+            typeof player.economy.money !==
             "number"
         ) {
-            player.economy.money =
-                0;
+            player.economy.money = 0;
         }
 
-        /* Default player social */
+        /* Social */
 
-        if (
-            !player.social
-        ) {
+        if (!player.social) {
             player.social = {};
         }
 
         if (
-            typeof player
-                .social.followers !==
+            typeof player.social.followers !==
             "number"
         ) {
-            player.social.followers =
-                0;
+            player.social.followers = 0;
         }
 
         touchState();
@@ -1383,6 +1268,14 @@
         saveGame();
 
         refreshDashboard();
+
+        /*
+         * INI PERBAIKAN UTAMA.
+         *
+         * Jangan navigate("home").
+         * "home" adalah page dashboard.
+         * Route utama adalah "dashboard".
+         */
 
         showDashboard();
 
@@ -1406,11 +1299,10 @@
 
         if (
             gachaButton &&
-            gachaButton.dataset
-                .bound !== "true"
+            gachaButton.dataset.bound !== "true"
         ) {
-            gachaButton.dataset
-                .bound = "true";
+            gachaButton.dataset.bound =
+                "true";
 
             gachaButton.addEventListener(
                 "click",
@@ -1423,11 +1315,10 @@
 
         if (
             createButton &&
-            createButton.dataset
-                .bound !== "true"
+            createButton.dataset.bound !== "true"
         ) {
-            createButton.dataset
-                .bound = "true";
+            createButton.dataset.bound =
+                "true";
 
             createButton.addEventListener(
                 "click",
@@ -1440,56 +1331,51 @@
             "character-shirt-name",
             "character-birthdate",
             "character-country"
-        ].forEach(
-            function (id) {
-                const element =
-                    $(id);
+        ].forEach(function (id) {
+            const element = $(id);
 
-                if (!element) {
-                    return;
-                }
+            if (!element) {
+                return;
+            }
 
-                if (
-                    element.dataset
-                        .previewBound ===
-                    "true"
-                ) {
-                    return;
-                }
+            if (
+                element.dataset.previewBound ===
+                "true"
+            ) {
+                return;
+            }
 
-                element.dataset
-                    .previewBound =
-                    "true";
+            element.dataset.previewBound =
+                "true";
 
-                element.addEventListener(
-                    "input",
-                    updateCharacterPreview
-                );
+            element.addEventListener(
+                "input",
+                updateCharacterPreview
+            );
 
-                element.addEventListener(
-                    "change",
-                    function () {
-                        updateCharacterPreview();
+            element.addEventListener(
+                "change",
+                function () {
+                    updateCharacterPreview();
 
-                        if (
-                            id ===
-                            "character-country"
-                        ) {
-                            const country =
-                                getSelectedCountry();
+                    if (
+                        id ===
+                        "character-country"
+                    ) {
+                        const country =
+                            getSelectedCountry();
 
-                            if (country) {
-                                log(
-                                    "Country selected:",
-                                    country.name,
-                                    country.code
-                                );
-                            }
+                        if (country) {
+                            log(
+                                "Country selected:",
+                                country.name,
+                                country.code
+                            );
                         }
                     }
-                );
-            }
-        );
+                }
+            );
+        });
 
         updateCharacterPreview();
 
@@ -1505,28 +1391,19 @@
        DASHBOARD
     ========================================================= */
 
-    function formatNumber(
-        value
-    ) {
+    function formatNumber(value) {
         return (
-            Number(
-                value
-            ) || 0
+            Number(value) || 0
         ).toLocaleString(
             "en-US",
             {
-                maximumFractionDigits:
-                    0
+                maximumFractionDigits: 0
             }
         );
     }
 
-    function formatMoney(
-        value
-    ) {
-        return formatNumber(
-            value
-        );
+    function formatMoney(value) {
+        return formatNumber(value);
     }
 
     function refreshDashboard() {
@@ -1546,20 +1423,16 @@
 
         const money =
             player.economy &&
-            typeof player.economy
-                .money ===
+            typeof player.economy.money ===
                 "number"
-                ? player.economy
-                    .money
+                ? player.economy.money
                 : 0;
 
         const followers =
             player.social &&
-            typeof player.social
-                .followers ===
+            typeof player.social.followers ===
                 "number"
-                ? player.social
-                    .followers
+                ? player.social.followers
                 : 0;
 
         let clubName =
@@ -1570,19 +1443,16 @@
             player.career.currentClubName
         ) {
             clubName =
-                player.career
-                    .currentClubName;
+                player.career.currentClubName;
         }
 
         if (
             window.S &&
             window.S.career &&
-            window.S.career
-                .currentClubName
+            window.S.career.currentClubName
         ) {
             clubName =
-                window.S.career
-                    .currentClubName;
+                window.S.career.currentClubName;
         }
 
         /* Header */
@@ -1624,9 +1494,7 @@
 
         if (headerMoney) {
             headerMoney.textContent =
-                formatMoney(
-                    money
-                );
+                formatMoney(money);
         }
 
         const headerFollowers =
@@ -1634,12 +1502,10 @@
 
         if (headerFollowers) {
             headerFollowers.textContent =
-                formatNumber(
-                    followers
-                );
+                formatNumber(followers);
         }
 
-        /* Dashboard player card */
+        /* Dashboard Card */
 
         const dashboardName =
             $("dashboard-player-name");
@@ -1655,8 +1521,7 @@
 
         if (dashboardOVR) {
             dashboardOVR.textContent =
-                player.ovr ||
-                0;
+                player.ovr || 0;
         }
 
         const dashboardPosition =
@@ -1677,24 +1542,18 @@
             phy: "dashboard-phy"
         };
 
-        Object.keys(
-            dashboardStats
-        ).forEach(
-            function (key) {
+        Object.keys(dashboardStats)
+            .forEach(function (key) {
                 const element =
                     $(
-                        dashboardStats[
-                            key
-                        ]
+                        dashboardStats[key]
                     );
 
                 if (element) {
                     element.textContent =
-                        stats[key] ||
-                        0;
+                        stats[key] || 0;
                 }
-            }
-        );
+            });
 
         updatePlayerPhoto(
             $("dashboard-player-photo"),
@@ -1751,60 +1610,24 @@
        DASHBOARD NAVIGATION
     ========================================================= */
 
+    /*
+     * Router.js sudah memiliki event delegation
+     * untuk [data-page].
+     *
+     * Karena itu App tidak memasang click listener
+     * kedua yang bisa bentrok dengan Router.
+     */
+
     function bindDashboardNavigation() {
         const buttons =
             document.querySelectorAll(
                 "[data-page]"
             );
 
-        buttons.forEach(
-            function (button) {
-                if (
-                    button.dataset
-                        .pageBound ===
-                    "true"
-                ) {
-                    return;
-                }
-
-                button.dataset
-                    .pageBound =
-                    "true";
-
-                button.addEventListener(
-                    "click",
-                    function () {
-                        const page =
-                            button.dataset
-                                .page;
-
-                        if (!page) {
-                            return;
-                        }
-
-                        if (
-                            page ===
-                            "home"
-                        ) {
-                            showDashboard();
-                            return;
-                        }
-
-                        navigate(
-                            page
-                        );
-
-                        log(
-                            "Dashboard navigation:",
-                            page
-                        );
-                    }
-                );
-            }
-        );
-
         log(
-            "Dashboard navigation ready."
+            "Dashboard navigation ready:",
+            buttons.length,
+            "buttons."
         );
     }
 
@@ -1812,65 +1635,31 @@
        CREATOR BUTTONS
     ========================================================= */
 
+    /*
+     * Creator navigation juga sudah ditangani
+     * oleh Router.js melalui [data-editor]
+     * dan #creator-close-button.
+     *
+     * App hanya memastikan tombolnya tersedia.
+     */
+
     function bindGlobalButtons() {
         const creatorAccess =
             $("creator-access");
 
-        if (
-            creatorAccess &&
-            creatorAccess.dataset
-                .bound !== "true"
-        ) {
-            creatorAccess.dataset
-                .bound = "true";
-
-            creatorAccess.addEventListener(
-                "click",
-                function () {
-                    navigate(
-                        "creator"
-                    );
-                }
-            );
-        }
-
         const creatorModeButton =
             $("creator-mode-button");
-
-        if (
-            creatorModeButton &&
-            creatorModeButton.dataset
-                .bound !== "true"
-        ) {
-            creatorModeButton.dataset
-                .bound = "true";
-
-            creatorModeButton.addEventListener(
-                "click",
-                function () {
-                    navigate(
-                        "creator"
-                    );
-                }
-            );
-        }
 
         const creatorClose =
             $("creator-close-button");
 
         if (
-            creatorClose &&
-            creatorClose.dataset
-                .bound !== "true"
+            creatorAccess ||
+            creatorModeButton ||
+            creatorClose
         ) {
-            creatorClose.dataset
-                .bound = "true";
-
-            creatorClose.addEventListener(
-                "click",
-                function () {
-                    showDashboard();
-                }
+            log(
+                "Global buttons ready."
             );
         }
     }
@@ -2003,8 +1792,7 @@
     ========================================================= */
 
     if (
-        document.readyState ===
-        "loading"
+        document.readyState === "loading"
     ) {
         document.addEventListener(
             "DOMContentLoaded",
