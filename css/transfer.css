@@ -1,0 +1,439 @@
+/* =========================================================
+   RV SPORTS: FC CUP 26
+   TRANSFER PAGE
+   ========================================================= */
+
+.transfer-page,
+.transfer-screen,
+.transfer-container {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.transfer-page {
+    min-height: calc(100vh - 90px);
+    padding: 32px 5vw 110px;
+    color: #f5f7fb;
+}
+
+/* Header */
+
+.transfer-header {
+    max-width: 1180px;
+    margin: 0 auto 28px;
+}
+
+.transfer-header h1 {
+    margin: 0 0 8px;
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.transfer-header p {
+    margin: 0;
+    color: #8e96a8;
+    font-size: 15px;
+}
+
+/* Player summary */
+
+.transfer-player-summary {
+    max-width: 1180px;
+    margin: 0 auto 28px;
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient(145deg, #151922, #0d1017);
+    border: 1px solid #252b38;
+    border-radius: 18px;
+    box-sizing: border-box;
+}
+
+.transfer-player-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.transfer-player-avatar {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: #202530;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.transfer-player-name {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.transfer-player-meta {
+    margin: 0;
+    color: #8f97a8;
+    font-size: 13px;
+}
+
+.transfer-player-ovr {
+    min-width: 72px;
+    text-align: center;
+}
+
+.transfer-player-ovr strong {
+    display: block;
+    font-size: 30px;
+    line-height: 1;
+}
+
+.transfer-player-ovr span {
+    display: block;
+    margin-top: 5px;
+    color: #858d9e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+/* Current club */
+
+.transfer-current-club {
+    max-width: 1180px;
+    margin: 0 auto 34px;
+}
+
+.transfer-current-club-label {
+    margin-bottom: 10px;
+    color: #737c8e;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.transfer-current-club-card {
+    padding: 20px 22px;
+    background: #11151d;
+    border: 1px solid #262c38;
+    border-radius: 16px;
+}
+
+.transfer-current-club-card strong {
+    font-size: 19px;
+}
+
+.transfer-current-club-card span {
+    display: block;
+    margin-top: 5px;
+    color: #858d9e;
+    font-size: 13px;
+}
+
+/* Section */
+
+.transfer-section {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.transfer-section-title {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.transfer-section-title h2 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.transfer-section-title p {
+    margin: 0;
+    color: #777f90;
+    font-size: 13px;
+}
+
+/* Club grid */
+
+.transfer-club-list,
+.transfer-clubs,
+.transfer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+/* Club card */
+
+.transfer-club-card,
+.transfer-card {
+    position: relative;
+    min-width: 0;
+    padding: 22px;
+    background:
+        radial-gradient(
+            circle at top right,
+            rgba(255, 255, 255, 0.055),
+            transparent 38%
+        ),
+        linear-gradient(145deg, #151922, #0e1117);
+    border: 1px solid #252b37;
+    border-radius: 18px;
+    box-sizing: border-box;
+    transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.transfer-club-card:hover,
+.transfer-card:hover {
+    transform: translateY(-3px);
+    border-color: #3a4252;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
+}
+
+/* Club top */
+
+.transfer-club-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.transfer-club-logo,
+.transfer-club-badge {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #202530;
+    border: 1px solid #303745;
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.transfer-club-name {
+    min-width: 0;
+}
+
+.transfer-club-name strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.transfer-club-country,
+.transfer-club-league {
+    display: block;
+    margin-top: 4px;
+    color: #858d9e;
+    font-size: 12px;
+}
+
+/* Stats */
+
+.transfer-club-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.transfer-stat {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid #242a35;
+    border-radius: 11px;
+}
+
+.transfer-stat span {
+    display: block;
+    margin-bottom: 4px;
+    color: #747d8e;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.transfer-stat strong {
+    font-size: 17px;
+}
+
+/* OVR */
+
+.transfer-club-ovr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 13px 14px;
+    background: #0b0e14;
+    border-radius: 11px;
+}
+
+.transfer-club-ovr span {
+    color: #858d9e;
+    font-size: 12px;
+}
+
+.transfer-club-ovr strong {
+    font-size: 22px;
+}
+
+/* Salary */
+
+.transfer-salary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 17px;
+    color: #8c94a5;
+    font-size: 13px;
+}
+
+.transfer-salary strong {
+    color: #f3f5f8;
+    font-size: 15px;
+}
+
+/* Interest */
+
+.transfer-interest {
+    display: inline-flex;
+    align-items: center;
+    min-height: 27px;
+    padding: 0 9px;
+    margin-bottom: 14px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #c3c8d2;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Buttons */
+
+.transfer-button,
+.transfer-card button,
+.transfer-club-card button {
+    width: 100%;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid #303745;
+    border-radius: 11px;
+    background: #1b2029;
+    color: #f4f6fa;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        background 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+}
+
+.transfer-button:hover,
+.transfer-card button:hover,
+.transfer-club-card button:hover {
+    background: #252b36;
+    border-color: #444d5e;
+}
+
+.transfer-button:active,
+.transfer-card button:active,
+.transfer-club-card button:active {
+    transform: scale(0.98);
+}
+
+/* Empty state */
+
+.transfer-empty {
+    max-width: 1180px;
+    margin: 30px auto;
+    padding: 45px 25px;
+    text-align: center;
+    background: #11151d;
+    border: 1px dashed #303745;
+    border-radius: 18px;
+}
+
+.transfer-empty strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 18px;
+}
+
+.transfer-empty span {
+    color: #777f90;
+    font-size: 13px;
+}
+
+/* Mobile */
+
+@media (max-width: 900px) {
+    .transfer-club-list,
+    .transfer-clubs,
+    .transfer-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .transfer-page {
+        padding: 24px 16px 100px;
+    }
+
+    .transfer-player-summary {
+        align-items: flex-start;
+        padding: 18px;
+    }
+
+    .transfer-player-ovr {
+        min-width: 55px;
+    }
+
+    .transfer-player-ovr strong {
+        font-size: 25px;
+    }
+
+    .transfer-club-list,
+    .transfer-clubs,
+    .transfer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .transfer-section-title {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .transfer-header h1 {
+        font-size: 30px;
+    }
+}
