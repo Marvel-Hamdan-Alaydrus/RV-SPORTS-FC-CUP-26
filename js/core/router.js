@@ -297,6 +297,13 @@
         };
 
         const rendererName = rendererMap[page];
+       if (
+    page === "transfer" &&
+    window.RVSportsTransferPage &&
+    typeof window.RVSportsTransferPage.render === "function"
+) {
+    window.RVSportsTransferPage.render();
+}
 
         if (
             rendererName &&
