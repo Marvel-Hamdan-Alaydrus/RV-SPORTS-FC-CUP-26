@@ -1,288 +1,230 @@
 /* =========================================================
    RV SPORTS: FC CUP 26
-   PLAYER CARDS
-   Version 2.1.0
-   ========================================================= */
-
-
-/* =========================================================
-   01. CARD BASE
-   ========================================================= */
-
-.player-card,
-.dashboard-player-card .player-card {
-    position: relative;
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   02. CARD SHINE
-   ========================================================= */
-
-.player-card::after {
-    content: "";
-
-    position: absolute;
-
-    top: -120%;
-    left: -80%;
-
-    width: 60%;
-    height: 300%;
-
-    pointer-events: none;
-
-    background:
-        linear-gradient(
-            90deg,
-            transparent,
-            rgba(255,255,255,0.08),
-            transparent
-        );
-
-    transform: rotate(18deg);
-
-    transition:
-        left 0.8s ease;
-}
-
-.player-card:hover::after {
-    left: 130%;
-}
-
-
-/* =========================================================
-   03. CARD RATING
-   ========================================================= */
-
-.player-card .card-ovr {
-    position: relative;
-    z-index: 3;
-
-    font-variant-numeric: tabular-nums;
-}
-
-.player-card .card-position {
-    position: relative;
-    z-index: 3;
-}
-
-
-/* =========================================================
-   04. CARD COUNTRY
-   ========================================================= */
-
-.player-card .card-country {
-    position: relative;
-    z-index: 3;
-
-    display: flex;
-    align-items: center;
-
-    gap: 5px;
-
-    white-space: nowrap;
-}
-
-
-/* =========================================================
-   05. PLAYER IMAGE
-   ========================================================= */
-
-.player-card-image {
-    overflow: hidden;
-}
-
-.player-card-image img {
-    max-width: 100%;
-    max-height: 100%;
-
-    object-position: center bottom;
-
-    filter:
-        drop-shadow(
-            0 12px 18px rgba(0,0,0,0.4)
-        );
-
-    transition:
-        transform 0.35s ease,
-        filter 0.35s ease;
-}
-
-.player-card:hover .player-card-image img {
-    transform: scale(1.025);
-
-    filter:
-        drop-shadow(
-            0 16px 25px rgba(0,0,0,0.5)
-        );
-}
-
-
-/* =========================================================
-   06. PLAYER PLACEHOLDER
-   ========================================================= */
-
-.player-placeholder {
-    position: relative;
-
-    overflow: hidden;
-
-    user-select: none;
-}
-
-.player-placeholder::before {
-    content: "";
-
-    position: absolute;
-
-    width: 65px;
-    height: 65px;
-
-    top: 20px;
-
-    border-radius: 50%;
-
-    background:
-        rgba(255,255,255,0.055);
-}
-
-.player-placeholder::after {
-    content: "";
-
-    position: absolute;
-
-    width: 90px;
-    height: 85px;
-
-    bottom: 0;
-
-    border-radius:
-        45px 45px 20px 20px;
-
-    background:
-        rgba(255,255,255,0.04);
-}
-
-
-/* =========================================================
-   07. CARD NAME
-   ========================================================= */
-
-.player-card-name span {
-    display: block;
-
-    max-width: 100%;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-}
-
-
-/* =========================================================
-   08. CARD STATS
-   ========================================================= */
-
-.player-card-stats .card-stat {
-    min-width: 0;
-
-    transition:
-        transform 0.2s ease;
-}
-
-.player-card:hover
-.player-card-stats .card-stat {
-    transform: translateY(-1px);
-}
-
-.card-stat .stat-value {
-    font-variant-numeric: tabular-nums;
-}
-
-
-/* =========================================================
-   09. OVR TIER EFFECTS
-   ========================================================= */
-
-.player-card.ovr-bronze .card-ovr {
-    text-shadow:
-        0 0 18px rgba(166,106,63,0.3);
-}
-
-.player-card.ovr-silver .card-ovr {
-    text-shadow:
-        0 0 18px rgba(174,184,199,0.3);
-}
-
-.player-card.ovr-gold .card-ovr {
-    text-shadow:
-        0 0 20px rgba(215,182,90,0.35);
-}
-
-.player-card.ovr-elite .card-ovr {
-    text-shadow:
-        0 0 22px rgba(169,140,255,0.4);
-}
-
-.player-card.ovr-worldclass .card-ovr {
-    text-shadow:
-        0 0 25px rgba(118,217,255,0.45);
-}
-
-.player-card.ovr-icon .card-ovr {
-    text-shadow:
-        0 0 28px rgba(247,231,165,0.5);
-}
-
-
-/* =========================================================
-   10. DASHBOARD CARD
+   PLAYER / UI CARD STYLES
    ========================================================= */
 
 .dashboard-player-card .player-card {
     width: 300px;
+    min-height: 430px;
 }
 
 .dashboard-player-card .player-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+}
+
+.player-card[data-rating-tier="bronze"] {
+    border-color: #a66a3f;
+}
+
+.player-card[data-rating-tier="silver"] {
+    border-color: #aeb8c7;
+}
+
+.player-card[data-rating-tier="gold"] {
+    border-color: #d7b65a;
+}
+
+.player-card[data-rating-tier="elite"] {
+    border-color: #a98cff;
+}
+
+.player-card[data-rating-tier="worldclass"] {
+    border-color: #76d9ff;
+}
+
+.player-card[data-rating-tier="icon"] {
+    border-color: #f7e7a5;
 }
 
 
-/* =========================================================
-   11. CARD RESPONSIVE
-   ========================================================= */
+/* Generic cards */
 
-@media (max-width: 380px) {
+.ui-card {
+    position: relative;
 
-    .dashboard-player-card .player-card {
-        width: 275px;
-    }
+    padding: 20px;
 
-    .player-card-name span {
-        font-size: 20px;
-    }
+    border:
+        1px solid rgba(255,255,255,0.07);
 
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.055),
+            rgba(255,255,255,0.02)
+        );
+
+    box-shadow:
+        0 20px 50px rgba(0,0,0,0.25);
+}
+
+.ui-card-title {
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.ui-card-subtitle {
+    margin-top: 5px;
+
+    font-size: 10px;
+
+    line-height: 1.5;
+
+    opacity: 0.4;
 }
 
 
-/* =========================================================
-   12. REDUCED MOTION
-   ========================================================= */
+/* Stat cards */
 
-@media (prefers-reduced-motion: reduce) {
+.stat-card-grid {
+    display: grid;
 
-    .player-card::after {
-        display: none;
-    }
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
 
-    .player-card,
-    .player-card-image img,
-    .player-card-stats .card-stat {
-        transition: none !important;
+    gap: 10px;
+}
+
+.stat-card {
+    padding: 15px;
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+    border-radius: 14px;
+
+    background:
+        rgba(255,255,255,0.025);
+}
+
+.stat-card-label {
+    font-size: 8px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    opacity: 0.4;
+}
+
+.stat-card-value {
+    margin-top: 5px;
+
+    font-size: 20px;
+
+    font-weight: 950;
+}
+
+
+/* List cards */
+
+.list-card {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 13px 15px;
+
+    border:
+        1px solid rgba(255,255,255,0.06);
+
+    border-radius: 13px;
+
+    background:
+        rgba(255,255,255,0.025);
+}
+
+.list-card-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-card-title {
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.list-card-description {
+    margin-top: 3px;
+
+    font-size: 9px;
+
+    opacity: 0.4;
+}
+
+.list-card-value {
+    font-size: 12px;
+    font-weight: 900;
+}
+
+
+/* Badge */
+
+.card-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 24px;
+
+    padding: 0 9px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255,255,255,0.07);
+
+    font-size: 8px;
+
+    font-weight: 850;
+
+    letter-spacing: 0.5px;
+}
+
+
+/* Empty card */
+
+.card-empty {
+    padding: 30px 20px;
+
+    text-align: center;
+
+    border:
+        1px dashed rgba(255,255,255,0.08);
+
+    border-radius: 15px;
+
+    background:
+        rgba(255,255,255,0.015);
+}
+
+.card-empty strong {
+    display: block;
+
+    font-size: 12px;
+}
+
+.card-empty span {
+    display: block;
+
+    margin-top: 6px;
+
+    font-size: 9px;
+
+    opacity: 0.35;
+}
+
+
+@media (min-width: 700px) {
+
+    .stat-card-grid {
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
     }
 
 }
